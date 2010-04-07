@@ -9,6 +9,7 @@ h2. Example
 Consider the following example to offer someone a drink
 
 somewhere in your app....
+
 <pre>
 conversation = Conversation.create!(:with => "0812345678", :topic => "drinking")
 # => Creates a new DrinkingConversation with 0812345678
@@ -46,7 +47,7 @@ This will generate a migration file and config/initializers/conversation.rb
 
 h3. Configure with Chatterbox
 
-gem "chatterbox",:git => "git://github.com/dwilkie/chatterbox.git"
+<pre>gem "chatterbox",:git => "git://github.com/dwilkie/chatterbox.git"</pre>
 
 <pre>rails g conversation chatterbox</pre>
 And uncomment the chatterbox initializer in config/initializers/conversation.rb
