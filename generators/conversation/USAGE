@@ -1,0 +1,13 @@
+Description:
+    Sets up Conversation in your Rails project. After running this generator
+    you will get a new migration file create_conversations and an initializer
+    config/initializers/conversation.rb with the default options
+
+Examples:
+    `rails g conversation`
+
+You can also provide the chatterbox argument to configure Conversation to use Chatterbox:
+This will also create an initializer under config/initializers/chatterbox.rb
+You will then need to go ahead and uncomment the Chatterbox setup in the Conversation config file.
+    `rails g conversation chatterbox`
+

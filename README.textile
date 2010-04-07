@@ -1,0 +1,63 @@
+h1. Conversation
+
+Allows you to have stateful conversations with your users over SMS, email
+or whatever communications network you like. For example you could use conversation
+to accept multistep commands from users over SMS to perform some task.
+
+h2. Example
+
+Consider the following example to offer someone a drink
+
+somewhere in your app....
+<pre>
+conversation = Conversation.create!(:with => "0812345678", :topic => "drinking")
+# => Creates a new DrinkingConversation with 0812345678
+conversation.details.move_along!
+#=> Sends an SMS to 0812345678 with "Would you like a drink?"
+</pre>
+
+Now lets say we get a reply from "0812345678" saying "yes"
+
+<pre>
+IncomingSMSController < ApplicationController
+ def create(params)
+   possible_topic = params[:message].split(" ").first
+   conversation = Conversation.find_or_create_with(params[:number], possible_topic)
+   # => returns the active DrinkingConversation with 0812345678
+   conversation.move_along!(params[:message])
+   # => Sends an SMS to 0812345678 with "I suggest beer"
+ end
+end
+</pre>
+
+Under the apps/models directory you can find the full implementation of DrinkingConversation
+and see how Conversation is intended to be used. You can also take a look under the features
+directory to see the cucumber feature for DrinkingConversation and under the spec directory
+to see it spec'ed in Rspec
+
+h2. Installation
+
+<pre>gem "conversation"</pre>
+
+h2. Setup
+
+<pre>rails g conversation</pre>
+This will generate a migration file and config/initializers/conversation.rb
+
+h3. Configure with Chatterbox
+
+gem "chatterbox",:git => "git://github.com/dwilkie/chatterbox.git"
+
+<pre>rails g conversation chatterbox</pre>
+And uncomment the chatterbox initializer in config/initializers/conversation.rb
+
+h2. Notes
+
+The instructions above are for Rails 3 but currently this gem is only compatible with
+Rails 2.3.x. In the near future I will be switching this gem over to be ONLY compatible with Rails 3
+
+You can use this gem now with Rails 2.3.5 and Chatterbox by installing Chatterbox as a
+<pre>plugin script/plugin install "git://github.com/dwilkie/chatterbox.git"</pre>
+
+Copyright (c) 2010 David Wilkie, released under the MIT license
+
