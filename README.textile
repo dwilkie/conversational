@@ -4,9 +4,11 @@ Allows you to have stateful conversations with your users over SMS, email
 or whatever communications network you like. For example you could use conversation
 to accept multistep commands from users over SMS to perform some task.
 
-h2. Example
+h2. Useage
 
-Consider the following example to offer someone a drink
+h3. Example
+
+Consider the following example to offer a use a drink
 
 somewhere in your app....
 
@@ -14,7 +16,7 @@ somewhere in your app....
 conversation = Conversation.create!(:with => "0812345678", :topic => "drinking")
 # => Creates a new DrinkingConversation with 0812345678
 conversation.details.move_along!
-#=> Sends an SMS to 0812345678 with "Would you like a drink?"
+# => Sends an SMS to 0812345678 with "Would you like a drink?"
 </pre>
 
 Now lets say we get a reply from "0812345678" saying "yes"
@@ -32,9 +34,106 @@ end
 </pre>
 
 Under the apps/models directory you can find the full implementation of DrinkingConversation
-and see how Conversation is intended to be used. You can also take a look under the features
+and see how Conversation can be used. You can also take a look under the features
 directory to see the cucumber feature for DrinkingConversation and under the spec directory
 to see it spec'ed in Rspec
+
+h3. Creation
+
+<pre>conversation = Conversation.create(:with => "someone", :topic => "something")</pre>
+This will create and return a new instance Conversation with the state: "new", with: "someone"
+and topic: "something"
+
+
+The returned value will be an instance of the superclass Conversation.
+<pre>conversation.details</pre> gives you the instance as a SomethingConversation
+provided that SomethingConversation is defined and subclasses Conversation.
+
+If SomethingConversation is not defined or does not subclass conversation
+<pre>conversation.details</pre> will try and return an instance of the <pre>unknown_topic_subclass</pre>
+which can be set via <pre>Conversation.unknown_topic_subclass=MyUnknownConversation</pre>
+
+If the unknown topic subclass has not been defined then calling <pre>conversation.details</pre>
+will return nil
+
+Similarly you can create Conversations with no topic
+<pre>conversation = Conversation.create(:with => "someone")</pre>
+
+In this case calling <pre>conversation.details</pre> will return and instance of the <pre>blank_topic_subclass</pre>
+which can be set via <pre>Conversation.blank_topic_subclass=MyBlankConversation</pre> or nil
+if it has not been defined
+
+h3. Finding
+
+h4. Default
+
+<pre>Conversation.with("someone")</pre>
+Will return all conversations that are not "finished" with "someone" in the last 24 hours
+
+If a conversation has the state: "finished" or is older than 24 hours
+it will not be returned
+
+h4. Overriding Defaults
+
+<pre>Conversation.converser("someone")</pre>
+Will return all conversations with "someone"
+
+<pre>Conversation.in_progress</pre>
+Will return all conversations that are not "finished" within the last 24 hours
+
+<pre>Conversation.recent</pre>
+Will return all conversations in the last 24 hours
+
+<pre>Conversation.with("someone")</pre> is just a shortcut for <pre>Conversation.converser("someone").in_progress.recent</pre>
+
+Just like with create the returned conversations will be an instances of the superclass Conversation.
+Use <pre>conversation.details</pre> on each member to get the specific type of Conversation
+
+<pre>Conversation.find_or_create_with("someone", "something")</pre>
+This will either return an instance of the most recent conversation with "someone"
+that is not "finished" and is within the last 24hrs as a SomethingConversation.
+
+If no conversation is found it will create and return a new instance of SomethingConversation
+Following the same rules as for <pre>conversation.details</pre>
+Here, however if there is not unknown topic subclass defined or no blank topic subclass defined
+and SomethingConversation is not defined, then an error will be raised.
+
+h3. Configuration
+
+Configuration can be done in the conversation initializer in the config/initializers
+directory.
+
+h4. Configure Conversation to use Chatterbox
+
+In the conversation initializer uncomment the following code:
+<pre>
+Conversation.converse do |with, notice|
+  Chatterbox.notify(:summary => notice) do |via|
+    via["Chatterbox::Services::Email"] = {:to => with}
+  end
+end
+</pre>
+
+Conversation will now use the Chatterbox email service to send notifications
+
+h4. Define finishing keywords
+
+<pre>Conversation.finishing_keywords = ["stop", "cancel", "end", "whatever"]</pre>
+Now when you call <pre>super("cancel")</pre> your move_along! method in your Conversation subclass
+it will change the conversations state to "finished"
+
+h4. Define an unknown topic subclass
+
+<pre>Conversation.unknown_topic_subclass = UnknownTopicConversation</pre>
+Now when you call <pre>Conversation.find_or_create_with("someone", "something")</pre>
+and SomethingConversation has not been defined you will get an instance of
+UnknownTopicConversation instead of an error
+
+h4. Define a blank topic subclass
+
+<pre>Conversation.blank_topic_subclass = BlankTopicConversation</pre>
+Now when you call <pre>Conversation.find_or_create_with("someone")</pre>
+you will get an instance of BlankTopicConversation instead of an error
 
 h2. Installation
 
@@ -43,7 +142,8 @@ h2. Installation
 h2. Setup
 
 <pre>rails g conversation</pre>
-This will generate a migration file and config/initializers/conversation.rb
+This will generate a migration file for your conversation class
+and an initializer under config/initializers/conversation.rb
 
 h3. Configure with Chatterbox
 
@@ -57,8 +157,11 @@ h2. Notes
 The instructions above are for Rails 3 but currently this gem is only compatible with
 Rails 2.3.x. In the near future I will be switching this gem over to be ONLY compatible with Rails 3
 
-You can use this gem now with Rails 2.3.5 and Chatterbox by installing Chatterbox as a
-<pre>plugin script/plugin install "git://github.com/dwilkie/chatterbox.git"</pre>
+You can use this gem now with Rails 2.3.5 and Chatterbox by installing Chatterbox as a plugin
+<pre>script/plugin install "git://github.com/dwilkie/chatterbox.git"</pre>
+
+Also <pre>Conversation.with("someone")</pre> is not supported with Rails 2.3.x so if you
+need to use this method use <pre>Conversation.converser("someone").in_progress.recent</pre> as a work around
 
 Copyright (c) 2010 David Wilkie, released under the MIT license
 
