@@ -14,16 +14,17 @@ class Conversation < ActiveRecord::Base
   scope :converser, lambda { |with| where(:with=> with) }
   scope :in_progress, where("state != ?", "finished")
   scope :recent, lambda { |*args| where("created_at > ?", (args.first || 24.hours.ago)) }
-  scope :with, lambda { |with| converser(with).in_progress.recent }
+  scope :with, lambda { |with| converser(with).in_progress.recent.first }
 
   # Register a service for sending notifications
   #
   # ===== Example:
   #
   # Conversation.converse do |with, notice|
-  #  Chatterbox.notify(:summary => notice) do |via|
-  #    via["Chatterbox::Services::Email"] = {:to => with}
-  #  end
+  #   Mail.deliver do
+  #     to with
+  #     subject notice
+  #   end
   # end
   def self.converse(&blk)
     @@notification = blk
@@ -40,7 +41,6 @@ class Conversation < ActiveRecord::Base
   # to try and create a new conversation or if a topic conversation does not exist
   # it will use the unknown_topic_subclass if that is defined.
   def self.find_or_create_with(with, topic)
-    # note this will become "with" in rails 3
     default_find = self.with(with)
     if default_find
       default_find.details

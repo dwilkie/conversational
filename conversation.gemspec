@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Wilkie"]
-  s.date = %q{2010-05-12}
+  s.date = %q{2010-05-13}
   s.description = %q{Have stateful conversations with your users over SMS, email or whichever service you like}
   s.email = %q{dwilkie@gmail.com}
   s.extra_rdoc_files = [
@@ -22,10 +22,7 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "app/models/conversation.rb",
-     "app/models/drinking_conversation.rb",
-     "app/models/sample_conversation.rb",
      "conversation.gemspec",
-     "features/chatterbox.feature",
      "features/configure_blank_or_unknown_topic.feature",
      "features/configure_finishing_keywords.feature",
      "features/drinking_conversation.feature",
@@ -42,20 +39,17 @@ Gem::Specification.new do |s|
      "features/support/env.rb",
      "features/support/paths.rb",
      "features/support/pickle.rb",
-     "install.rb",
      "lib/conversation.rb",
      "lib/conversation/engine.rb",
      "lib/generators/conversation/skeleton/USAGE",
      "lib/generators/conversation/skeleton/skeleton_generator.rb",
      "lib/generators/conversation/skeleton/templates/initializer.rb",
-     "rails/init.rb",
+     "lib/generators/conversation/skeleton/templates/migration.rb",
      "spec/models/conversation_spec.rb",
      "spec/models/drinking_conversation_spec.rb",
      "spec/rcov.opts",
      "spec/spec.opts",
-     "spec/spec_helper.rb",
-     "tasks/conversation_tasks.rake",
-     "uninstall.rb"
+     "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/dwilkie/conversation}
   s.rdoc_options = ["--charset=UTF-8"]
