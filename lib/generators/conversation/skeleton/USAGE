@@ -4,4 +4,4 @@ Description:
   config/initializers/conversation.rb with the default options
 
 Example:
-  rails g conversation
+  rails g conversation:skeleton
