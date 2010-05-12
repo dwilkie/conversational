@@ -16,12 +16,14 @@ Gem::Specification.new do |s|
     "README.textile"
   ]
   s.files = [
-    "MIT-LICENSE",
+    ".gitignore",
+     "MIT-LICENSE",
      "README.textile",
      "Rakefile",
      "VERSION",
      "app/models/drinking_conversation.rb",
      "app/models/sample_conversation.rb",
+     "conversation.gemspec",
      "features/chatterbox.feature",
      "features/configure_blank_or_unknown_topic.feature",
      "features/configure_finishing_keywords.feature",
@@ -71,9 +73,12 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<state_machine>, ["> 0.9.1"])
     else
+      s.add_dependency(%q<state_machine>, ["> 0.9.1"])
     end
   else
+    s.add_dependency(%q<state_machine>, ["> 0.9.1"])
   end
 end
 
