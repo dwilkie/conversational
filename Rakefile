@@ -21,7 +21,7 @@ begin
     gemspec.summary = "Have stateful conversations with your users"
     gemspec.description = "Have stateful conversations with your users over SMS, email or whichever service you like"
     gemspec.email = "dwilkie@gmail.com"
-    gemspec.add_runtime_dependency "state_machine", ">0.9.1"
+    gemspec.add_runtime_dependency "state_machine", ">=0.9.1"
     gemspec.homepage = "http://github.com/dwilkie/conversation"
     gemspec.authors = ["David Wilkie"]
   end
