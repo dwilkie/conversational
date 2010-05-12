@@ -1,10 +1,9 @@
-require "aasm"
 class Conversation < ActiveRecord::Base
-  include AASM
-  aasm_column :state
-  aasm_initial_state :new
-  aasm_state :new
-  aasm_state :finished
+  state_machine :state, :initial => :new do
+    event :finish do
+      transition all => :finished
+    end
+  end
 
   cattr_accessor :unknown_topic_subclass
   cattr_accessor :blank_topic_subclass
@@ -12,16 +11,10 @@ class Conversation < ActiveRecord::Base
 
   validates_presence_of :with, :state
 
-  named_scope :converser, lambda { |with| { :conditions => ["with=?", with] }}
-  named_scope :in_progress, :conditions => ["state != ?", "finished"]
-  named_scope :recent, lambda { |*args| { :conditions => ["created_at > ?", (args.first || 24.hours.ago)] }}
-  named_scope :with, lambda { |with| converser(with).in_progress.recent }
-
-#  Rails 3
-#  scope :converser, lambda { |with| where(:with=> with) }
-#  scope :in_progress, where("state != ?", "finished")
-#  scope :recent, lambda { |*args| where("created_at > ?", (args.first || 24.hours.ago)) }
-#  scope :with, lambda { |with| converser(with).in_progress.recent }
+  scope :converser, lambda { |with| where(:with=> with) }
+  scope :in_progress, where("state != ?", "finished")
+  scope :recent, lambda { |*args| where("created_at > ?", (args.first || 24.hours.ago)) }
+  scope :with, lambda { |with| converser(with).in_progress.recent }
 
   # Register a service for sending notifications
   #
@@ -48,7 +41,7 @@ class Conversation < ActiveRecord::Base
   # it will use the unknown_topic_subclass if that is defined.
   def self.find_or_create_with(with, topic)
     # note this will become "with" in rails 3
-    default_find = self.converser(with).in_progress.recent.last
+    default_find = self.with(with)
     if default_find
       default_find.details
     else
@@ -65,11 +58,6 @@ class Conversation < ActiveRecord::Base
       end
       subclass.create!(:with => with, :topic => topic)
     end
-  end
-
-  # Returns if the conversation is finished
-  def finished?
-    state == "finished"
   end
 
   # Returns the specific subclass of conversation for the current topic
@@ -90,8 +78,7 @@ class Conversation < ActiveRecord::Base
     # it will check if the message is a finishing keyword and mark the conversation
     # as finished if it is
     def move_along!(message=nil)
-      self.state = "finished" if @@finishing_keywords && @@finishing_keywords.include?(message)
-      self.save!
+      finish if @@finishing_keywords && @@finishing_keywords.include?(message)
     end
 
   private #no doc
