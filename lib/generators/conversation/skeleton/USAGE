@@ -1,0 +1,7 @@
+Description:
+  Sets up Conversation in your Rails project. After running this generator
+  you will get a new migration file create_conversations and an initializer
+  config/initializers/conversation.rb with the default options
+
+Example:
+  rails g conversation
