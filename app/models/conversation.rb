@@ -14,7 +14,7 @@ class Conversation < ActiveRecord::Base
   scope :converser, lambda { |with| where(:with=> with) }
   scope :in_progress, where("state != ?", "finished")
   scope :recent, lambda { |*args| where("created_at > ?", (args.first || 24.hours.ago)) }
-  scope :with, lambda { |with| converser(with).in_progress.recent.first }
+  scope :with, lambda { |with| converser(with).in_progress.recent }
 
   # Register a service for sending notifications
   #
@@ -41,7 +41,7 @@ class Conversation < ActiveRecord::Base
   # to try and create a new conversation or if a topic conversation does not exist
   # it will use the unknown_topic_subclass if that is defined.
   def self.find_or_create_with(with, topic)
-    default_find = self.with(with)
+    default_find = self.with(with).last
     if default_find
       default_find.details
     else
