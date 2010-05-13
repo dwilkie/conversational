@@ -221,13 +221,7 @@ describe Conversation do
     end
   end
   describe "scopes" do
-    let(:conversation) { Conversation.create!(valid_attributes) }
-    # remove this before block after 
-    # http://github.com/rspec/rspec-rails/issues#issue/53
-    # has been resolved
-    before {
-      tmp = conversation
-    }
+    let!(:conversation) { Conversation.create!(valid_attributes) }
     describe ".converser" do
       it "should find the conversation with someone" do
         Conversation.converser("someone").last.should == conversation

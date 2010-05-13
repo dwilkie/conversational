@@ -25,20 +25,17 @@ Gem::Specification.new do |s|
      "conversation.gemspec",
      "features/configure_blank_or_unknown_topic.feature",
      "features/configure_finishing_keywords.feature",
-     "features/drinking_conversation.feature",
      "features/find_existing_conversation.feature",
      "features/find_or_create_with.feature",
      "features/retrieve_conversation_details.feature",
-     "features/step_definitions/blank_unknown_topic_steps.rb",
-     "features/step_definitions/chatterbox_steps.rb",
      "features/step_definitions/conversation_steps.rb",
-     "features/step_definitions/drinking_conversation_steps.rb",
-     "features/step_definitions/email_steps.rb",
      "features/step_definitions/pickle_steps.rb",
-     "features/step_definitions/web_steps.rb",
+     "features/support/email_spec.rb",
      "features/support/env.rb",
+     "features/support/mail.rb",
      "features/support/paths.rb",
      "features/support/pickle.rb",
+     "features/support/sample_conversation.rb",
      "lib/conversation.rb",
      "lib/conversation/engine.rb",
      "lib/generators/conversation/skeleton/USAGE",
@@ -46,9 +43,6 @@ Gem::Specification.new do |s|
      "lib/generators/conversation/skeleton/templates/initializer.rb",
      "lib/generators/conversation/skeleton/templates/migration.rb",
      "spec/models/conversation_spec.rb",
-     "spec/models/drinking_conversation_spec.rb",
-     "spec/rcov.opts",
-     "spec/spec.opts",
      "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/dwilkie/conversation}
@@ -58,8 +52,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Have stateful conversations with your users}
   s.test_files = [
     "spec/spec_helper.rb",
-     "spec/models/conversation_spec.rb",
-     "spec/models/drinking_conversation_spec.rb"
+     "spec/models/conversation_spec.rb"
   ]
 
   if s.respond_to? :specification_version then

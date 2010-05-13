@@ -21,6 +21,10 @@ Given /^I configure Conversation with following finishing keywords: "([^\"]*)"/ 
   Conversation.finishing_keywords = finishing_strings.split(", ")
 end
 
+Given /^I configured my (blank|unknown) conversation topic template as (\w+)$/ do |template_type, template_name|
+  Conversation.send("#{template_type}_topic_subclass=", template_name.constantize)
+end
+
 When /^I call find_or_create_with\("([^\"]*)", "([^\"]*)"\)$/ do |with, topic|
   Conversation.find_or_create_with(with, topic)
 end
@@ -29,13 +33,18 @@ When /^I move #{capture_model} along(?: with: "([^\"]*)")?$/ do |name, message|
   model!(name).move_along!(message)
 end
 
+When /^I start up a conversation with a (blank|unknown) topic$/ do |template_type|
+  topic = ""
+  topic = "ihopethisisunknown" if template_type == "unknown"
+  Given "a conversation exists with topic: \"#{topic}\", with: \"someone\""
+end
+
 Then /^the conversation details should be a (\w+)$/ do |template_name|
   model!("conversation").details.class.should == template_name.constantize
 end
 
 Then /^I should (not )?be able to find a conversation with: "([^\"]*)"$/ do |negative, with|
-  # Rails 3 => Conversation.with(with).last
-  conversation = Conversation.converser(with).in_progress.recent.last
+  conversation = Conversation.with(with).last
   unless negative
     conversation.should == model!("conversation")
   else

@@ -10,6 +10,10 @@ module Conversation
        @source_root ||= File.join(File.dirname(__FILE__), 'templates')
     end
 
+    def copy_initializer_file
+      copy_file "initializer.rb", "config/initializers/conversation.rb"
+    end
+
     def self.next_migration_number(dirname)
       if ActiveRecord::Base.timestamped_migrations
         Time.now.utc.strftime("%Y%m%d%H%M%S")
@@ -20,10 +24,6 @@ module Conversation
 
     def create_migration_file
       migration_template 'migration.rb', 'db/migrate/create_conversations.rb'
-    end
-
-    def copy_initializer_file
-      copy_file "initializer.rb", "config/initializers/conversation.rb"
     end
   end
 end

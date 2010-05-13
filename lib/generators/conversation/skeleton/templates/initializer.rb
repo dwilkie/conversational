@@ -1,9 +1,11 @@
-# Uncomment the following to configure Conversation to use Chatterbox
-# Conversation.converse do |with, notice|
-#   Chatterbox.notify(:summary => notice) do |via|
-#     via["Chatterbox::Services::Email"] = {:to => with}
-#   end
-# end
+# Uncomment the following to configure Conversation to use Mail
+#Conversation.converse do |with, notice|
+#  Mail.deliver do
+#    to with
+#    subject notice
+#    body notice
+#  end
+#end
 
 # Or you can use Conversation with whatever you like
 # Conversation.converse do |with, notice|
