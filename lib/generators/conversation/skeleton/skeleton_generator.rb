@@ -4,8 +4,6 @@ module Conversation
   class SkeletonGenerator < Rails::Generators::Base
     include Rails::Generators::Migration
 
-    #desc "run this generator to set up conversation"
-
     def self.source_root
        @source_root ||= File.join(File.dirname(__FILE__), 'templates')
     end

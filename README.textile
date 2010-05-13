@@ -8,6 +8,8 @@ h2. Useage
 
 h3. Example
 
+See the "example app":http://github.com/dwilkie/drinking for full details
+
 Consider the following example to offer a use a drink
 
 somewhere in your app....
@@ -32,11 +34,6 @@ IncomingSMSController < ApplicationController
  end
 end
 </pre>
-
-Under the apps/models directory you can find the full implementation of DrinkingConversation
-and see how Conversation can be used. You can also take a look under the features
-directory to see the cucumber feature for DrinkingConversation and under the spec directory
-to see it spec'ed in Rspec
 
 h3. Creation
 
@@ -103,23 +100,27 @@ h3. Configuration
 Configuration can be done in the conversation initializer in the config/initializers
 directory.
 
-h4. Configure Conversation to use Chatterbox
+h4. Configure Conversation to use Mail
 
 In the conversation initializer uncomment the following code:
 <pre>
 Conversation.converse do |with, notice|
-  Chatterbox.notify(:summary => notice) do |via|
-    via["Chatterbox::Services::Email"] = {:to => with}
+  Mail.deliver do
+    to with
+    from "someone@example.com"
+    subject notice
+    body notice
   end
 end
 </pre>
 
-Conversation will now use the Chatterbox email service to send notifications
+Conversation will now use the Mail to send notifications
+Note: You will also need to set up the "Mail":http://github.com/mikel/mail gem
 
 h4. Define finishing keywords
 
 <pre>Conversation.finishing_keywords = ["stop", "cancel", "end", "whatever"]</pre>
-Now when you call <pre>super("cancel")</pre> your move_along! method in your Conversation subclass
+Now when you call <pre>super("cancel")</pre> in your move_along! method in your Conversation subclass
 it will change the conversations state to "finished"
 
 h4. Define an unknown topic subclass
@@ -141,27 +142,14 @@ h2. Installation
 
 h2. Setup
 
-<pre>rails g conversation</pre>
+<pre>rails g conversation:skeleton</pre>
 This will generate a migration file for your conversation class
 and an initializer under config/initializers/conversation.rb
 
-h3. Configure with Chatterbox
-
-<pre>gem "chatterbox",:git => "git://github.com/dwilkie/chatterbox.git"</pre>
-
-<pre>rails g conversation chatterbox</pre>
-And uncomment the chatterbox initializer in config/initializers/conversation.rb
-
 h2. Notes
 
-The instructions above are for Rails 3 but currently this gem is only compatible with
-Rails 2.3.x. In the near future I will be switching this gem over to be ONLY compatible with Rails 3
-
-You can use this gem now with Rails 2.3.5 and Chatterbox by installing Chatterbox as a plugin
-<pre>script/plugin install "git://github.com/dwilkie/chatterbox.git"</pre>
-
-Also <pre>Conversation.with("someone")</pre> is not supported with Rails 2.3.x so if you
-need to use this method use <pre>Conversation.converser("someone").in_progress.recent</pre> as a work around
+Conversation is no longer compatible with Rails 2.3.x
+To use with Rails 2.3.x you must install version 0.1.0
 
 Copyright (c) 2010 David Wilkie, released under the MIT license
 

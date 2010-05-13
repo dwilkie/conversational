@@ -30,6 +30,109 @@ describe Conversation do
     defined_conversation
   end
 
+  describe "scopes" do
+    let!(:conversation) { Conversation.create!(valid_attributes) }
+    describe ".converser" do
+      it "should find the conversation with someone" do
+        Conversation.converser("someone").last.should == conversation
+      end
+    end
+    describe ".recent" do
+      context "the conversation is less than 24 hours old" do
+        context "passing no arguments" do
+          it "should find the conversation" do
+            Conversation.recent.last.should == conversation
+          end
+        end
+      end
+      context "the conversation is older than 24 hours" do
+        before {
+          conversation.created_at = 24.hours.ago
+          conversation.save!
+        }
+        context "passing no arguments" do
+          it "should not find the conversation" do
+            Conversation.recent.last.should be_nil
+          end
+        end
+        context "passing an argument" do
+          it "should find the conversation" do
+            Conversation.recent(25.hours.ago).last.should == conversation
+          end
+        end
+      end
+    end
+    describe ".in_progress" do
+      context "conversation is in progress" do
+        it "should find the conversation" do
+          Conversation.in_progress.last.should == conversation
+        end
+      end
+      context "conversation is finished" do
+        before {
+          conversation.finish
+        }
+        it "should not find the conversation" do
+          Conversation.in_progress.last.should be_nil
+        end
+      end
+    end
+    describe ".with" do
+      context "conversation is in progress and recent" do
+        it "should find the conversation" do
+          Conversation.with("someone").last.should == conversation
+        end
+      end
+    end
+  end
+
+  describe ".converse" do
+    it "should accept a block" do
+      lambda {
+        Conversation.converse do |with, notice|
+        end
+        }.should_not raise_error
+    end
+  end
+  
+  describe ".converse" do
+    it "should accept a block" do
+      lambda {
+        Conversation.converse do |with, notice|
+        end
+        }.should_not raise_error
+    end
+    it "should not accept anything else" do
+      lambda {
+        Conversation.converse("something")
+        }.should raise_error
+    end
+  end
+  
+  describe ".unknown_topic_subclass" do
+    it "should be a class attribute" do
+      unknown_topic_conversation = mock("UnknownTopicConversation")
+      Conversation.unknown_topic_subclass = unknown_topic_conversation
+      Conversation.unknown_topic_subclass.should == unknown_topic_conversation
+    end
+  end
+
+  describe ".blank_topic_subclass" do
+    it "should be a class attribute" do
+      blank_topic_conversation = mock("BlankTopicConversation")
+      Conversation.blank_topic_subclass = blank_topic_conversation
+      Conversation.blank_topic_subclass.should == blank_topic_conversation
+    end
+  end
+  
+  describe ".finishing_keywords" do
+    it "should be a class attribute" do
+      finishing_keywords = ["stop", "cancel"]
+      Conversation.finishing_keywords = finishing_keywords
+      Conversation.finishing_keywords.should == finishing_keywords
+    end
+  end
+
   describe ".find_or_create_with" do
     context "when no conversation exists" do
       context "but a conversation definition with this topic has been defined" do
@@ -216,61 +319,6 @@ describe Conversation do
         }
         it "should return nil" do
           conversation.details.should be_nil
-        end
-      end
-    end
-  end
-  describe "scopes" do
-    let!(:conversation) { Conversation.create!(valid_attributes) }
-    describe ".converser" do
-      it "should find the conversation with someone" do
-        Conversation.converser("someone").last.should == conversation
-      end
-    end
-    describe ".recent" do
-      context "the conversation is less than 24 hours old" do
-        context "passing no arguments" do
-          it "should find the conversation" do
-            Conversation.recent.last.should == conversation
-          end
-        end
-      end
-      context "the conversation is older than 24 hours" do
-        before {
-          conversation.created_at = 24.hours.ago
-          conversation.save!
-        }
-        context "passing no arguments" do
-          it "should not find the conversation" do
-            Conversation.recent.last.should be_nil
-          end
-        end
-        context "passing an argument" do
-          it "should find the conversation" do
-            Conversation.recent(25.hours.ago).last.should == conversation
-          end
-        end
-      end
-    end
-    describe ".in_progress" do
-      context "conversation is in progress" do
-        it "should find the conversation" do
-          Conversation.in_progress.last.should == conversation
-        end
-      end
-      context "conversation is finished" do
-        before {
-          conversation.finish
-        }
-        it "should not find the conversation" do
-          Conversation.in_progress.last.should be_nil
-        end
-      end
-    end
-    describe ".with" do
-      context "conversation is in progress and recent" do
-        it "should find the conversation" do
-          Conversation.with("someone").last.should == conversation
         end
       end
     end

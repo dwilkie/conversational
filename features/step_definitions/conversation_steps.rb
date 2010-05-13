@@ -29,10 +29,6 @@ When /^I call find_or_create_with\("([^\"]*)", "([^\"]*)"\)$/ do |with, topic|
   Conversation.find_or_create_with(with, topic)
 end
 
-When /^I move #{capture_model} along(?: with: "([^\"]*)")?$/ do |name, message|
-  model!(name).move_along!(message)
-end
-
 When /^I start up a conversation with a (blank|unknown) topic$/ do |template_type|
   topic = ""
   topic = "ihopethisisunknown" if template_type == "unknown"
