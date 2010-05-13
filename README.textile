@@ -100,15 +100,18 @@ Now when you call <pre>super("cancel")</pre> in your move_along! method in your 
 
 h4. Define an unknown topic subclass
 
+
 <pre>Conversation.unknown_topic_subclass = UnknownTopicConversation</pre>
 Now when you call <pre>Conversation.find_or_create_with("someone", "something")</pre> and SomethingConversation has not been defined you will get an instance of UnknownTopicConversation instead of an error
 
 h4. Define a blank topic subclass
 
+
 <pre>Conversation.blank_topic_subclass = BlankTopicConversation</pre> Now when you call <pre>Conversation.find_or_create_with("someone")</pre> you will get an instance of BlankTopicConversation instead of an error
 
 h2. Installation
 
+Add the following to your Gemfile
 <pre>gem "conversation"</pre>
 
 h2. Setup
