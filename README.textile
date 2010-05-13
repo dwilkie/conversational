@@ -2,7 +2,7 @@ h1. Conversation
 
 Allows you to have stateful conversations with your users over SMS, email or whatever communications network you like. For example you could use conversation to accept multistep commands from users over SMS to perform some task.
 
-h2. Useage
+h2. Usage
 
 h3. Example
 
