@@ -32,6 +32,93 @@ class Conversation < ActiveRecord::Base
     @@notification = blk
   end
 
+  # Register classes which will not be treated as conversations
+  # when you use #details or Conversation.find_or_create_with
+  #
+  # ===== Example:
+  #
+  # Consider the following situation where you define AbstractConversation
+  # that MonkeyConversations inherits from. You want to work with MonkeyConversation
+  # but you never want to work with AbstractConversation directly.
+  #
+  # <tt>
+  #   class AbstractConversation < Conversation
+  #   end
+  # 
+  #   class MonkeyConversation < AbstractConversation
+  #   end
+  #
+  #   class UnknownTopicConversation < AbstractConversation
+  #   end
+  #
+  #   class IncomingTextMessage < ActiveRecord::Base
+  #   end
+  #
+  #   class IncomingTextMessagesController < ApplicationController
+  #     def create
+  #       IncomingTextMessage.create(params[:message_text], params[:number])
+  #     end
+  #   end
+  # </tt>
+  #
+  # Now what happens when a user sends in a message like "monkey"
+  # <tt>
+  #   message = IncomingTextMessage.last
+  #   topic = message.text.split(" ").first
+  #   => "monkey"
+  #   number = message.number
+  #   => "123456789"
+  #   conversation = Conversation.new(:with => number, :topic => topic).details
+  #   => #<MonkeyConversation topic: "monkey", with: "123456789">
+  # </tt>
+
+  # No problem here you will work with MonkeyConversation directly. But what if
+  # the user sends in a message like "abstract"?
+  # <tt>
+  #   message = IncomingTextMessage.last
+  #   topic = message.text.split(" ").first
+  #   => "abstract"
+  #   number = message.number
+  #   => "123456789"
+  #   conversation = Conversation.new(:with => number, :topic => topic).details
+  #   => #<AbstractConversation topic: "abstract", with: "123456789">
+  # </tt>
+  # Now you're are about to work with AbstractConversation directly
+  # which is not what you want. Let's fix it
+  # <tt>
+  #   # config/initializers/conversation.rb
+  #   Conversation.exclude AbstractConversation
+  #   Conversation.unknown_topic_subclass = UnkownTopicConversation
+  # </tt>
+  #
+  # <tt>
+  #   message = IncomingTextMessage.last
+  #   topic = message.text.split(" ").first
+  #   => "abstract"
+  #   number = message.number
+  #   => "123456789"
+  #   conversation = Conversation.new(:with => number, :topic => topic).details
+  #   => #<UnknownTopicConversation topic: "abstract", with: "123456789">
+  # </tt>
+  #
+  # <tt>Conversation.exclude</tt> accepts the following
+  # * Class: <tt>Conversation.exclude AbstractConversation</tt>
+  # * Array: <tt>Conversation.exclude [AbstractConversation, OtherConversation]</tt>
+  # * Symbol: <tt>Conversation.exclude :abstract_conversation</tt>
+  # * String: <tt>Conversation.exclude "abstract_conversation"</tt>
+  # * Regexp: <tt>Conversation.exclude /abstract/i</tt>
+
+  def self.exclude(classes)
+    if classes.is_a?(Array)
+      classes.each do |class_name|
+        check_exclude_options!(class_name)
+      end
+    else
+      check_exclude_options!(classes)
+    end
+    @@excluded_classes = classes
+  end
+  
   # Finds or creates a new conversation with someone for a specified topic.
   # The topic is only used if a new conversation needs to be started
   # For example, let's say and incoming email comes in.from someone@example
@@ -94,7 +181,7 @@ class Conversation < ActiveRecord::Base
           project_class = project_class_name.constantize
           # the subclass has been defined
           # check that it is a subclass of this class
-          if subclasses_of(self).include?(project_class)
+          if subclasses_of(self).include?(project_class) && !exclude?(project_class)
             subclass = project_class
           else
             subclass = @@unknown_topic_subclass if @@unknown_topic_subclass
@@ -105,6 +192,41 @@ class Conversation < ActiveRecord::Base
         end
       end
       subclass
+    end
+    
+    def exclude?(subclass)
+      if @@excluded_classes.is_a?(Array)
+        @@excluded_classes.each do |excluded_class|
+          break if exclude_class?(subclass)
+        end
+      else
+        exclude_class?(subclass)
+      end
+    end
+    
+    def exclude_class?(subclass)
+      if @@excluded_classes.is_a?(Class)
+        @@excluded_classes == subclass
+      elsif @@excluded_classes.is_a?(Regexp)
+        subclass.to_s =~ @@excluded_classes
+      else
+        excluded_class = @@excluded_classes.to_s
+        begin
+          excluded_class.constantize == subclass
+        rescue
+          false
+        end
+      end
+    end
+
+    def self.check_exclude_options!(classes)
+      raise(
+        ArgumentError,
+        "You must specify an Array, Symbol, Regex, String or Class. You specified a #{classes.class}"
+      ) unless classes.is_a?(Symbol) ||
+           classes.is_a?(Regexp) ||
+           classes.is_a?(String) ||
+           classes.is_a?(Class)
     end
 
     def self.topic_subclass_name(topic)

@@ -5,7 +5,7 @@ Feature: Configure finishing keywords
          a conversation
 
   Background:
-    Given I configure Conversation with following finishing keywords: "cancel, stop"
+    Given I configured Conversation with the following: Conversation.finishing_keywords = ["cancel", "stop"]
     And a sample_conversation exists with topic: "sample", with: "someone"
 
   Scenario: Check cancel

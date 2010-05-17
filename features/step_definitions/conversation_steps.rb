@@ -17,21 +17,17 @@ Given /^no conversations exist with: "([^\"]*)"/ do |with|
   end
 end
 
-Given /^I configure Conversation with following finishing keywords: "([^\"]*)"/ do |finishing_strings|
-  Conversation.finishing_keywords = finishing_strings.split(", ")
-end
-
-Given /^I configured my (blank|unknown) conversation topic template as (\w+)$/ do |template_type, template_name|
-  Conversation.send("#{template_type}_topic_subclass=", template_name.constantize)
+Given /^I configured Conversation with the following: (.+)$/ do |configuration|
+  instance_eval(configuration)
 end
 
 When /^I call find_or_create_with\("([^\"]*)", "([^\"]*)"\)$/ do |with, topic|
   Conversation.find_or_create_with(with, topic)
 end
 
-When /^I start up a conversation with a (blank|unknown) topic$/ do |template_type|
+When /^I start up a conversation with an? (blank|unknown) topic$/ do |template_type|
   topic = ""
-  topic = "ihopethisisunknown" if template_type == "unknown"
+  topic = "unknown" if template_type == "unknown"
   Given "a conversation exists with topic: \"#{topic}\", with: \"someone\""
 end
 
@@ -46,5 +42,9 @@ Then /^I should (not )?be able to find a conversation with: "([^\"]*)"$/ do |neg
   else
    conversation.should be_nil
   end
+end
+
+Then /^#{capture_model} details should (?:be|have) (?:an? )?#{capture_predicate}$/ do |name, predicate|
+  model!(name).details.should send("be_#{predicate.gsub(' ', '_')}")
 end
 
