@@ -109,12 +109,14 @@ class Conversation < ActiveRecord::Base
   # * Regexp: <tt>Conversation.exclude /abstract/i</tt>
 
   def self.exclude(classes)
-    if classes.is_a?(Array)
-      classes.each do |class_name|
-        check_exclude_options!(class_name)
+    if classes
+      if classes.is_a?(Array)
+        classes.each do |class_name|
+          check_exclude_options!(class_name)
+        end
+      else
+        check_exclude_options!(classes)
       end
-    else
-      check_exclude_options!(classes)
     end
     @@excluded_classes = classes
   end
@@ -138,11 +140,15 @@ class Conversation < ActiveRecord::Base
       if subclass.nil?
         if topic && !topic.blank?
           subclass_name = self.topic_subclass_name(topic)
-          raise(ArgumentError,
-            "You have either not defined #{subclass_name} or it does not subclass #{self.to_s}. You can either define #{subclass_name} as a subclass of #{self.to_s} or define an unknown_topic_subclass for #{self.to_s}")
+          raise(
+             ArgumentError,
+            "You have either not defined #{subclass_name} it does not subclass #{self.to_s}, or it has been excluded. You can either define #{subclass_name} as a subclass of #{self.to_s} or define an unknown_topic_subclass for #{self.to_s}"
+          )
         else
-          raise(ArgumentError,
-            "You have not defined a topic for this #{self.to_s}. You can either define a topic as a subclass of #{self.to_s} or define a blank_topic_subclass for #{self.to_s}")
+          raise(
+             ArgumentError,
+            "You have not defined a blank_topic_subclass for #{self.to_s} so conversations without a topic are not allowed."
+          )
         end
       end
       subclass.create!(:with => with, :topic => topic)
@@ -181,7 +187,7 @@ class Conversation < ActiveRecord::Base
           project_class = project_class_name.constantize
           # the subclass has been defined
           # check that it is a subclass of this class
-          if subclasses_of(self).include?(project_class) && !exclude?(project_class)
+          if subclasses_of(self).include?(project_class) && !self.exclude?(project_class)
             subclass = project_class
           else
             subclass = @@unknown_topic_subclass if @@unknown_topic_subclass
@@ -194,17 +200,19 @@ class Conversation < ActiveRecord::Base
       subclass
     end
     
-    def exclude?(subclass)
-      if @@excluded_classes.is_a?(Array)
-        @@excluded_classes.each do |excluded_class|
-          break if exclude_class?(subclass)
+    def self.exclude?(subclass)
+      if defined?(@@excluded_classes)
+        if @@excluded_classes.is_a?(Array)
+          @@excluded_classes.each do |excluded_class|
+            break if exclude_class?(subclass)
+          end
+        else
+          exclude_class?(subclass)
         end
-      else
-        exclude_class?(subclass)
       end
     end
     
-    def exclude_class?(subclass)
+    def self.exclude_class?(subclass)
       if @@excluded_classes.is_a?(Class)
         @@excluded_classes == subclass
       elsif @@excluded_classes.is_a?(Regexp)
@@ -212,7 +220,7 @@ class Conversation < ActiveRecord::Base
       else
         excluded_class = @@excluded_classes.to_s
         begin
-          excluded_class.constantize == subclass
+          excluded_class.classify.constantize == subclass
         rescue
           false
         end
@@ -222,7 +230,7 @@ class Conversation < ActiveRecord::Base
     def self.check_exclude_options!(classes)
       raise(
         ArgumentError,
-        "You must specify an Array, Symbol, Regex, String or Class. You specified a #{classes.class}"
+        "You must specify an Array, Symbol, Regex, String or Class or nil. You specified a #{classes.class}"
       ) unless classes.is_a?(Symbol) ||
            classes.is_a?(Regexp) ||
            classes.is_a?(String) ||

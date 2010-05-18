@@ -1,82 +1,50 @@
 h1. Conversation
 
-Allows you to have stateful conversations with your users over SMS, email or whatever communications network you like. For example you could use conversation to accept multistep commands from users over SMS to perform some task.
+Allows you to have stateful conversations with your users over SMS, email or whatever service you like. For example you could use conversation to accept multistep commands from users over SMS to perform some task.
 
 h2. Usage
 
-h3. Example
+Conversation is best described using an "example":http://github.com/dwilkie/drinking about drinking so if your new to Conversation head over there and take a look. If you want to know more about configuring Conversation keep reading...
 
-See the "example app":http://github.com/dwilkie/drinking for full details
+h2. Creation
 
-Consider the following example to offer a use a drink
+conversation = Conversation.create(:with => "someone", :topic => "something"). This will create and return a new instance Conversation with the state: "new", with: "someone" and topic: "something"
 
-somewhere in your app....
+The returned value will be an instance of the superclass Conversation. conversation.details gives you the instance as a SomethingConversation provided that SomethingConversation is defined and subclasses Conversation.
 
-<pre>
-conversation = Conversation.create!(:with => "0812345678", :topic => "drinking")
-# => Creates a new DrinkingConversation with 0812345678
-conversation.details.move_along!
-# => Sends an SMS to 0812345678 with "Would you like a drink?"
-</pre>
+If SomethingConversation is not defined or does not subclass conversation conversation.details will try and return an instance of the unknown_topic_subclass which can be set via Conversation.unknown_topic_subclass = MyUnknownConversation
 
-Now lets say we get a reply from "0812345678" saying "yes"
+If the unknown topic subclass has not been defined then calling conversation.details will return nil
 
-<pre>
-IncomingSMSController < ApplicationController
- def create(params)
-   possible_topic = params[:message].split(" ").first
-   conversation = Conversation.find_or_create_with(params[:number], possible_topic)
-   # => returns the active DrinkingConversation with 0812345678
-   conversation.move_along!(params[:message])
-   # => Sends an SMS to 0812345678 with "I suggest beer"
- end
-end
-</pre>
+Similarly you can create Conversations with no topic conversation = Conversation.create(:with => "someone"). In this case calling conversation.details will return an instance of the blank_topic_subclass which can be set via Conversation.blank_topic_subclass = MyBlankConversation or nil if it has not been defined
 
-h3. Creation
+h2. Finding
 
-<pre>conversation = Conversation.create(:with => "someone", :topic => "something")</pre> This will create and return a new instance Conversation with the state: "new", with: "someone" and topic: "something"
+h3. Default
 
-The returned value will be an instance of the superclass Conversation. <pre>conversation.details</pre> gives you the instance as a SomethingConversation provided that SomethingConversation is defined and subclasses Conversation.
+Conversation.with("someone") will return all conversations that are not "finished" with "someone" in the last 24 hours. If a conversation has the state: "finished" or is older than 24 hours it will not be returned.
 
-If SomethingConversation is not defined or does not subclass conversation <pre>conversation.details</pre> will try and return an instance of the <pre>unknown_topic_subclass</pre> which can be set via <pre>Conversation.unknown_topic_subclass=MyUnknownConversation</pre>
+h3. Overriding Defaults
 
-If the unknown topic subclass has not been defined then calling <pre>conversation.details</pre> will return nil
+Conversation.converser("someone") will return all conversations with "someone" regardless of state or time.
 
-Similarly you can create Conversations with no topic <pre>conversation = Conversation.create(:with => "someone")</pre>
+Conversation.in_progress will return all conversations that are not "finished"
 
-In this case calling <pre>conversation.details</pre> will return and instance of the <pre>blank_topic_subclass</pre> which can be set via <pre>Conversation.blank_topic_subclass=MyBlankConversation</pre> or nil if it has not been defined
+Conversation.recent will return all conversations in the last 24 hours
 
-h3. Finding
+Conversation.with("someone") is just a shortcut for Conversation.converser("someone").in_progress.recent
 
-h4. Default
+Just like with create the returned conversations will be an instances of the superclass Conversation. Use conversation.details on each member to get the specific type of Conversation
 
-<pre>Conversation.with("someone")</pre> Will return all conversations that are not "finished" with "someone" in the last 24 hours
+Conversation.find_or_create_with("someone", "something") will either return an instance of the most recent conversation with "someone" that is not "finished" and is within the last 24hrs as a SomethingConversation.
 
-If a conversation has the state: "finished" or is older than 24 hours it will not be returned
+If no conversation is found it will create and return a new instance of SomethingConversation following the same rules as for conversation.details. Here, however if there is not unknown topic subclass defined or no blank topic subclass defined and SomethingConversation is not defined, then an error will be raised.
 
-h4. Overriding Defaults
-
-<pre>Conversation.converser("someone")</pre> Will return all conversations with "someone"
-
-<pre>Conversation.in_progress</pre> Will return all conversations that are not "finished" within the last 24 hours
-
-<pre>Conversation.recent</pre> Will return all conversations in the last 24 hours
-
-<pre>Conversation.with("someone")</pre> is just a shortcut for <pre>Conversation.converser("someone").in_progress.recent</pre>
-
-Just like with create the returned conversations will be an instances of the superclass Conversation. Use <pre>conversation.details</pre> on each member to get the specific type of Conversation
-
-<pre>Conversation.find_or_create_with("someone", "something")</pre> This will either return an instance of the most recent conversation with "someone" that is not "finished" and is within the last 24hrs as a SomethingConversation.
-
-If no conversation is found it will create and return a new instance of SomethingConversation following the same rules as for <pre>conversation.details</pre> Here, however if there is not unknown topic subclass defined or no blank topic subclass defined
-and SomethingConversation is not defined, then an error will be raised.
-
-h3. Configuration
+h2. Configuration
 
 Configuration can be done in the conversation initializer in the config/initializers directory.
 
-h4. Configure Conversation to use Mail
+h3. Configure Conversation to use Mail
 
 In the conversation initializer uncomment the following code:
 <pre>
@@ -93,30 +61,43 @@ end
 Conversation will now use the Mail to send notifications
 Note: You will also need to set up the "Mail":http://github.com/mikel/mail gem
 
-h4. Define finishing keywords
+h3. Define finishing keywords
 
-<pre>Conversation.finishing_keywords = ["stop", "cancel", "end", "whatever"]</pre>
-Now when you call <pre>super("cancel")</pre> in your move_along! method in your Conversation subclass it will change the conversations state to "finished"
+Conversation.finishing_keywords = ["stop", "cancel", "end", "whatever"]
+Now when you call super("cancel") in your move_along! method in your Conversation subclass it will change the conversations state to "finished"
 
-h4. Define an unknown topic subclass
+h3. Define an unknown topic subclass
 
+Conversation.unknown_topic_subclass = UnknownTopicConversation
+Now when you call Conversation.find_or_create_with("someone", "something") and SomethingConversation has not been defined you'll get an instance of UnknownTopicConversation instead of an error
 
-<pre>Conversation.unknown_topic_subclass = UnknownTopicConversation</pre>
-Now when you call <pre>Conversation.find_or_create_with("someone", "something")</pre> and SomethingConversation has not been defined you will get an instance of UnknownTopicConversation instead of an error
+h3. Define a blank topic subclass
 
-h4. Define a blank topic subclass
+Conversation.blank_topic_subclass = BlankTopicConversation
+Now when you call Conversation.find_or_create_with("someone") you'll get an instance of BlankTopicConversation instead of an error
 
+h3. Define exclusion classes
 
-<pre>Conversation.blank_topic_subclass = BlankTopicConversation</pre> Now when you call <pre>Conversation.find_or_create_with("someone")</pre> you will get an instance of BlankTopicConversation instead of an error
+Conversation.exclude AbstractConversation
+Conversation.exclude "abstract_conversation"
+Conversation.exclude /abstract/
+Conversation.exclude :abstract_conversation
+Conversation.exclude [InternalConversation, /abstract/]
+
+Any of these will ignore AbstractConversation when finding Conversations
+So if you have a class defined as AbstractConversation < Conversation when you call Conversation.find_or_create_with("someone", "abstract") you'll either get an error or an instance of unknown_topic_conversation if it is defined. Also calling Conversation.new(:topic => "abstract", :with => "someone").details will return an instance of unknown_topic_conversation if defined or nil
+
+This can be useful if you are defining conversations that you never want to work with directly.
 
 h2. Installation
 
 Add the following to your Gemfile
-<pre>gem "conversation"</pre>
+gem "conversation"
 
 h2. Setup
 
-<pre>rails g conversation:skeleton</pre> This will generate a migration file for your conversation class and an initializer under config/initializers/conversation.rb
+rails g conversation:skeleton
+This will generate a migration file for your conversation class and an initializer under config/initializers/conversation.rb
 
 h2. Notes
 

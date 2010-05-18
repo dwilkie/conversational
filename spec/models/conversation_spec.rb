@@ -14,6 +14,7 @@ describe Conversation do
       topic.stub!(:constantize).and_return(defined_conversation[:class])
       defined_conversation[:topic] = topic
       defined_conversation[:array] = []
+      defined_conversation[:array].stub!(:include?).and_return(true)
       Conversation.stub!(:subclasses_of).and_return(defined_conversation[:array])
     else
       if params[:unknown]
@@ -93,15 +94,6 @@ describe Conversation do
         end
         }.should_not raise_error
     end
-  end
-  
-  describe ".converse" do
-    it "should accept a block" do
-      lambda {
-        Conversation.converse do |with, notice|
-        end
-        }.should_not raise_error
-    end
     it "should not accept anything else" do
       lambda {
         Conversation.converse("something")
@@ -132,33 +124,211 @@ describe Conversation do
       Conversation.finishing_keywords.should == finishing_keywords
     end
   end
+  
+  describe ".exclude" do
+    it "should accept a string" do
+      lambda {
+        Conversation.exclude "something"
+        }.should_not raise_error
+    end
+    it "should accept a symbol" do
+      lambda {
+        Conversation.exclude :defined_conversation
+        }.should_not raise_error
+    end
+    it "should accept a regex" do
+      lambda {
+        Conversation.exclude /something/i
+        }.should_not raise_error
+    end
+    it "should accept a Class" do
+      some_class = mock("SomeClass", :superclass => Class)
+      some_class.stub!(:is_a?).with(Class).and_return(true)
+      lambda {
+        Conversation.exclude some_class
+        }.should_not raise_error
+    end
+    it "should accept an Array where the elements are a Class, String, Symbol or Regexp" do
+      some_class = mock("SomeClass", :superclass => Class)
+      some_class.stub!(:is_a?).with(Class).and_return(true)
+      lambda {
+        Conversation.exclude ["Something", some_class, /something/i, :something]
+        }.should_not raise_error
+    end
+    it "should accept nil" do
+      lambda {
+        Conversation.exclude nil
+        }.should_not raise_error
+    end
+    it "should not accept anything else" do
+      some_class = mock("SomeClass")
+      lambda {
+        Conversation.exclude some_class
+        }.should raise_error(/You specified a /)
+    end
+  end
+
+#      context "and defining a class 'DefinedConversation < Conversation'" do
+#        let(:defined_conversation) { define_conversation }
+#        before {
+#          excluded_class = "DefinedConversation"
+#          excluded_class.stub!(:constantize).and_return(
+#            defined_conversation[:class]
+#          )
+#          Conversation.exclude excluded_class
+#        }
+#        context "then Conversation.find_or_create_with('someone', 'defined')" do
+#          it "should raise an error" do
+#            lambda {
+#              Conversation.find_or_create_with(
+#                "someone", defined_conversation[:topic]
+#              )
+#            }.should raise_error(/it has been excluded/)
+#          end
+#        end
+
+#        context "then Conversation.new(:topic => 'defined').details" do
+#          let(:conversation) { Conversation.new(valid_attributes) }
+#          before {
+#            conversation.stub!(:topic).and_return(defined_conversation[:topic])
+#          }
+#          it "should return nil" do
+#            conversation.details.should be_nil
+#          end
+#        end
+
+
+
 
   describe ".find_or_create_with" do
-    context "when no conversation exists" do
+    context "when no existing conversation exists with 'someone'" do
       context "but a conversation definition with this topic has been defined" do
-        let(:defined_conversation) { defined_conversation = define_conversation }
-        context "and it is a type of conversation" do
+        let(:defined_conversation) { define_conversation }
+        context "and it subclasses conversation" do
           before {
             defined_conversation[:array].stub!(:include?).and_return(true)
           }
-          it "should create a new conversation" do
-            defined_conversation[:class].should_receive(:create!).with(
-              :with => "someone", :topic => defined_conversation[:topic]
-            )
-            Conversation.find_or_create_with("someone", defined_conversation[:topic])
+          context "and it has not been excluded" do
+            before {
+              Conversation.exclude nil
+            }
+            it "should create a new conversation" do
+              defined_conversation[:class].should_receive(:create!).with(
+                :with => "someone", :topic => defined_conversation[:topic]
+              )
+              Conversation.find_or_create_with(
+                "someone", defined_conversation[:topic]
+              )
+            end
+          end
+          context "but it has been excluded" do
+            before {
+              Conversation.stub!(:exclude?).and_return(true)
+            }
+            context "and an unknown topic subclass has been defined" do
+              let(:unknown_conversation) { define_conversation(:unknown => true) }
+              it "should create a new unknown conversation" do
+                unknown_conversation[:class].should_receive(:create!).with(
+                  :with => "someone", :topic => defined_conversation[:topic]
+                )
+                Conversation.find_or_create_with(
+                  "someone", defined_conversation[:topic]
+                )
+              end
+            end
+            context "and an unknown topic subclass has not been defined" do
+              before {
+                Conversation.unknown_topic_subclass = nil
+              }
+              it "should raise an error" do
+                lambda {
+                  Conversation.find_or_create_with(
+                    "someone", defined_conversation[:topic]
+                  )
+                }.should raise_error(/it has been excluded/)
+              end
+            end
+          end
+          context "and an unknown topic subclass has not been defined" do
+            before {
+              Conversation.unknown_topic_subclass = nil
+            }
+            context "and the conversation has been excluded" do
+              context "by setting Conversation.exclude 'defined_conversation'" do
+                before {
+                  excluded_class = "defined_conversation"
+                  excluded_class.stub_chain(
+                    :classify,
+                    :constantize).and_return(
+                    defined_conversation[:class]
+                  )
+                  Conversation.exclude excluded_class
+                }
+                it "should raise an error" do
+                  lambda {
+                    Conversation.find_or_create_with(
+                      "someone", defined_conversation[:topic]
+                    )
+                  }.should raise_error(/it has been excluded/)
+                end
+              end
+              context "by setting Conversation.exclude DefinedConversation" do
+                before {
+                  excluded_class = defined_conversation[:class]
+                  defined_conversation[:class].stub!(:superclass).and_return(Class)
+                  defined_conversation[:class].stub!(:is_a?).with(
+                    Class
+                    ).and_return(true)
+                  Conversation.exclude defined_conversation[:class]
+                }
+                it "should raise an error" do
+                  lambda {
+                    Conversation.find_or_create_with(
+                      "someone", defined_conversation[:topic]
+                    )
+                  }.should raise_error(/it has been excluded/)
+                end
+              end
+              context "by setting Conversation.exclude /defined/i" do
+                before {
+                  Conversation.exclude /defined/i
+                }
+                it "should raise an error" do
+                  lambda {
+                    Conversation.find_or_create_with(
+                      "someone", defined_conversation[:topic]
+                    )
+                  }.should raise_error(/it has been excluded/)
+                end
+              end
+              context "by setting Conversation.exclude [/defined/i]" do
+                before {
+                  Conversation.exclude [/defined/i]
+                }
+                it "should raise an error" do
+                  lambda {
+                    Conversation.find_or_create_with(
+                      "someone", defined_conversation[:topic]
+                    )
+                  }.should raise_error(/it has been excluded/)
+                end
+              end
+            end
           end
         end
         context "but it is not a type of conversation" do
           before {
             defined_conversation[:array].stub!(:include?).and_return(false)
           }
-          context "but an unknown topic subclass has however been defined" do
+          context "but an unknown topic subclass has been defined" do
             let(:unknown_conversation) { define_conversation(:unknown => true) }
             it "should create a new unknown conversation" do
               unknown_conversation[:class].should_receive(:create!).with(
                 :with => "someone", :topic => defined_conversation[:topic]
               )
-              Conversation.find_or_create_with("someone", defined_conversation[:topic])
+              Conversation.find_or_create_with(
+                "someone", defined_conversation[:topic]
+                )
             end
           end
           context "and an unknown topic subclass has not been defined" do
@@ -198,7 +368,7 @@ describe Conversation do
           end
         end
       end
-      context "the topic for conversation is blank" do
+      context "and the topic for conversation is blank" do
         context "but a blank conversation definition has been defined" do
           let(:blank_conversation) { define_conversation(:blank => true) }
           it "should create a blank conversation" do
@@ -208,14 +378,14 @@ describe Conversation do
             Conversation.find_or_create_with("someone", nil)
           end
         end
-        context "and a blank conversation has not been defined" do
+        context "and a blank conversation definition has not been defined" do
           before(:each) do
             Conversation.blank_topic_subclass = nil
           end
           it "should raise an error" do
               lambda {
                 Conversation.find_or_create_with("someone", nil)
-              }.should raise_error(/not defined a topic for this Conversation/)
+              }.should raise_error(/not defined a blank_topic_subclass/)
           end
         end
       end
@@ -242,21 +412,101 @@ describe Conversation do
       before {
         conversation.stub!(:topic).and_return(defined_conversation[:topic])
       }
-      context "and it is a type of conversation" do
+      context "and it's a type of conversation" do
         before {
           defined_conversation[:array].stub!(:include?).and_return(true)
-          defined_conversation[:class].stub!(:new).and_return(
-            defined_conversation[:instance])
         }
-        it "should return the specific type of conversation" do
-          conversation.details.should == defined_conversation[:instance]
+        context "and it has not been excluded" do
+          before {
+            Conversation.exclude nil
+            defined_conversation[:class].stub!(:new).and_return(
+              defined_conversation[:instance]
+            )
+          }
+          it "should return the specific type of conversation" do
+            conversation.details.should == defined_conversation[:instance]
+          end
+        end
+        context "but it has been excluded" do
+          before {
+            Conversation.stub!(:exclude?).and_return(true)
+          }
+          context "an unknown conversation definition has been defined" do
+            let(:unknown_conversation) { define_conversation(:unknown => true) }
+            before {
+              unknown_conversation[:class].stub!(:new).and_return(
+                unknown_conversation[:instance]
+              )
+            }
+            it "should return an instance of the unknown conversation definition" do
+              conversation.details.should == unknown_conversation[:instance]
+            end
+          end
+          context "and an unknown conversation definition has not been defined" do
+            before {
+              Conversation.unknown_topic_subclass = nil
+            }
+            it "should return nil" do
+              conversation.details.should be_nil
+            end
+          end
+        end
+        context "and an unknown topic subclass has not been defined" do
+          before {
+            Conversation.unknown_topic_subclass = nil
+          }
+          context "and the conversation has been excluded" do
+            context "by setting Conversation.exclude 'defined_conversation'" do
+              before {
+                excluded_class = "defined_conversation"
+                excluded_class.stub_chain(
+                  :classify,
+                  :constantize).and_return(
+                  defined_conversation[:class]
+                )
+                Conversation.exclude excluded_class
+              }
+              it "should return nil" do
+                conversation.details.should be_nil
+              end
+            end
+            context "by setting Conversation.exclude DefinedConversation" do
+              before {
+                excluded_class = defined_conversation[:class]
+                defined_conversation[:class].stub!(:superclass).and_return(Class)
+                defined_conversation[:class].stub!(:is_a?).with(
+                  Class
+                  ).and_return(true)
+                Conversation.exclude defined_conversation[:class]
+              }
+              it "should return nil" do
+                conversation.details.should be_nil
+              end
+            end
+            context "by setting Conversation.exclude /defined/i" do
+              before {
+                Conversation.exclude /defined/i
+              }
+              it "should return nil" do
+                conversation.details.should be_nil
+              end
+            end
+            context "by setting Conversation.exclude [/defined/i]" do
+              before {
+                Conversation.exclude [/defined/i]
+              }
+              it "should return nil" do
+                conversation.details.should be_nil
+              end
+            end
+          end
         end
       end
       context "but is not a type of conversation" do
         before {
           defined_conversation[:array].stub!(:include?).and_return(false)
         }
-        context "an unknown conversation definition has however been defined" do
+        context "an unknown conversation definition has been defined" do
           let(:unknown_conversation) { define_conversation(:unknown => true) }
           before {
             unknown_conversation[:class].stub!(:new).and_return(
