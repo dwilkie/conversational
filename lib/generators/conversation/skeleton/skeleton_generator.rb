@@ -11,6 +11,10 @@ module Conversation
     def copy_initializer_file
       copy_file "initializer.rb", "config/initializers/conversation.rb"
     end
+    
+    def create_conversations_directory
+      empty_directory "app/conversations"
+    end
 
     def self.next_migration_number(dirname)
       if ActiveRecord::Base.timestamped_migrations
