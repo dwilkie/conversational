@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Wilkie"]
-  s.date = %q{2010-05-13}
+  s.date = %q{2010-05-18}
   s.description = %q{Have stateful conversations with your users over SMS, email or whichever service you like}
   s.email = %q{dwilkie@gmail.com}
   s.extra_rdoc_files = [
@@ -23,8 +23,10 @@ Gem::Specification.new do |s|
      "VERSION",
      "app/models/conversation.rb",
      "conversation.gemspec",
-     "features/configure_blank_or_unknown_topic.feature",
+     "features/configure_blank_topic.feature",
+     "features/configure_exclusion_conversations.feature",
      "features/configure_finishing_keywords.feature",
+     "features/configure_unknown_topic.feature",
      "features/find_existing_conversation.feature",
      "features/find_or_create_with.feature",
      "features/retrieve_conversation_details.feature",
