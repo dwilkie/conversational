@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{conversation}
-  s.version = "0.2.3"
+  s.version = "0.2.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Wilkie"]
@@ -13,12 +13,12 @@ Gem::Specification.new do |s|
   s.description = %q{Have stateful conversations with your users over SMS, email or whichever service you like}
   s.email = %q{dwilkie@gmail.com}
   s.extra_rdoc_files = [
-    "README.textile"
+    "README.markdown"
   ]
   s.files = [
     ".gitignore",
      "MIT-LICENSE",
-     "README.textile",
+     "README.markdown",
      "Rakefile",
      "VERSION",
      "app/models/conversation.rb",
