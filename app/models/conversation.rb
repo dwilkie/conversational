@@ -185,15 +185,16 @@ class Conversation < ActiveRecord::Base
         project_class_name = self.topic_subclass_name(topic)
         begin
           project_class = project_class_name.constantize
-          # the subclass has been defined
-          # check that it is a subclass of this class
-          if subclasses_of(self).include?(project_class) && !self.exclude?(project_class)
-            subclass = project_class
-          else
-            subclass = @@unknown_topic_subclass if @@unknown_topic_subclass
-          end
         rescue
-          # the subclass has not been defined
+          project_class = nil
+        end
+        # the subclass has been defined
+        # check that it is a subclass of this class
+        if project_class &&
+          subclasses_of(self).include?(project_class) &&
+          !self.exclude?(project_class)
+            subclass = project_class
+        else
           subclass = @@unknown_topic_subclass if @@unknown_topic_subclass
         end
       end
