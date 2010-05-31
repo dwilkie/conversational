@@ -15,7 +15,7 @@ Feature: Find existing conversation or create a new one
 
   Scenario: An existing open, old conversation - Create a new conversation
   Given a conversation exists with topic: "sample", with: "someone"
-  And 24 hours have elapsed since the conversation started
+  And 24 hours have elapsed since the conversation was last updated
   When I call find_or_create_with("someone", "sample")
   Then 2 conversations should exist
 
@@ -27,7 +27,7 @@ Feature: Find existing conversation or create a new one
 
   Scenario: An existing finished, old conversation - Create a new conversation
   Given a conversation exists with topic: "sample", with: "someone"
-  And 24 hours have elapsed since the conversation started
+  And 24 hours have elapsed since the conversation was last updated
   And the conversation is finished
   When I call find_or_create_with("someone", "sample")
   Then 2 conversations should exist

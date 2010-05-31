@@ -1,0 +1,6 @@
+Description:
+  Creates a blank Conversation class and a directory to store your conversations
+  under app/conversations
+
+Example:
+  rails g conversation:skeleton

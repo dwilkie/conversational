@@ -16,5 +16,5 @@ Feature: Configure exclusion conversations
       | Conversation.exclude "sample_conversation"                                 |
       | Conversation.exclude "SampleConversation"                                  |
       | Conversation.exclude :sample_conversation                                  |
-      | Conversation.exclude /sample/                                              |
+      | Conversation.exclude /sample/i                                             |
       | Conversation.exclude [/sample/, "sample_conversation", SampleConversation] |

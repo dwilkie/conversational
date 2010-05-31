@@ -1,8 +1,10 @@
-Given /^(an|\d+) hours? (?:has|have) elapsed since #{capture_model} started$/ do |time, conversation|
+Given /^(an|\d+) hours? (?:has|have) elapsed since #{capture_model} was last updated$/ do |time, conversation|
   conversation = model!(conversation)
   time = parse_email_count(time)
-  conversation.created_at = time.hours.ago
+  Conversation.record_timestamps = false
+  conversation.updated_at = time.hours.ago
   conversation.save!
+  Conversation.record_timestamps = true
 end
 
 Given /^#{capture_model} is (.+)$/ do |conversation, state|

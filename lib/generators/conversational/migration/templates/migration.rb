@@ -1,7 +1,8 @@
 class CreateConversations < ActiveRecord::Migration
   def self.up
     create_table :conversations do |t|
-      t.string :state, :with, :null => false
+      t.string :with, :null => false
+      t.string :state
       t.string :topic
       t.timestamps
     end
