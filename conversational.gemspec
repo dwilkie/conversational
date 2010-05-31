@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "conversation.gemspec",
+     "conversational.gemspec",
      "features/configure_blank_topic.feature",
      "features/configure_exclusion_conversations.feature",
      "features/configure_unknown_topic.feature",
@@ -35,7 +36,21 @@ Gem::Specification.new do |s|
      "features/support/paths.rb",
      "features/support/pickle.rb",
      "features/support/sample_conversation.rb",
-     "spec/spec_helper.rb"
+     "lib/conversational.rb",
+     "lib/conversational/active_record_additions.rb",
+     "lib/conversational/conversation.rb",
+     "lib/conversational/conversation_definition.rb",
+     "lib/generators/conversational/migration/USAGE",
+     "lib/generators/conversational/migration/migration_generator.rb",
+     "lib/generators/conversational/migration/templates/migration.rb",
+     "lib/generators/conversational/skeleton/USAGE",
+     "lib/generators/conversational/skeleton/skeleton_generator.rb",
+     "lib/generators/conversational/skeleton/templates/conversation.rb",
+     "spec/active_record_additions_spec.rb",
+     "spec/conversation_definition_spec.rb",
+     "spec/conversation_spec.rb",
+     "spec/spec_helper.rb",
+     "spec/support/conversation.rb"
   ]
   s.homepage = %q{http://github.com/dwilkie/conversational}
   s.rdoc_options = ["--charset=UTF-8"]
