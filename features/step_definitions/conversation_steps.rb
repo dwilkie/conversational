@@ -23,6 +23,10 @@ Given /^I configured Conversation with the following: (.+)$/ do |configuration|
   instance_eval(configuration)
 end
 
+When /^I start a new conversation(?: with #{capture_fields})?$/ do |fields|
+  
+end
+
 When /^I call find_or_create_with\("([^\"]*)", "([^\"]*)"\)$/ do |with, topic|
   Conversation.find_or_create_with(with, topic)
 end
@@ -48,5 +52,9 @@ end
 
 Then /^#{capture_model} details should (?:be|have) (?:an? )?#{capture_predicate}$/ do |name, predicate|
   model!(name).details.should send("be_#{predicate.gsub(' ', '_')}")
+end
+
+Then /^conversation\.details\(:include_all => true\) should be a SampleConversation$/ do
+  model!("conversation").details(:include_all => true).class.should == SampleConversation
 end
 

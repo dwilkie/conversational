@@ -5,6 +5,8 @@ module Conversational
       ConversationDefinition.klass = base
       if defined?(ActiveRecord::Base) && base <= ActiveRecord::Base
         base.send(:include, ActiveRecordAdditions)
+      else
+        base.send(:include, InstanceAttributes)
       end
     end
 
@@ -51,7 +53,7 @@ module Conversational
     # </tt>
     def details(options = {})
       details_subclass = ConversationDefinition.find_subclass_by_topic(
-        topic, options[:include_all]
+        topic, options
       )
       self.becomes(details_subclass) if details_subclass
     end
@@ -61,6 +63,16 @@ module Conversational
       def say(message)
         ConversationDefinition.notification.call(with, message)
       end
+
+    module InstanceAttributes
+      attr_accessor :with, :topic
+      
+      def initialize(options = {})
+        self.with = options[:with]
+        self.topic = options[:topic]
+      end
+      
+    end
 
     module ClassMethods
       def unknown_topic_subclass=(klass)
