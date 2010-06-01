@@ -57,7 +57,7 @@ There's quite a bit going on here so let's have a bit more of a look.
 
 In the controller a new Conversation is created with the number of the incoming message and the topic as the first word of the text message. In our case the topic will be either "us" or "wow". Calling `details` on an instance of Conversation will try and return an instance of a class in your project that subclasses your main Conversation class and has the same name as the topic. In our case our main Conversation class *is* called Conversation so a topic of "us" will map to `UsConversation`. Similarly "wow" maps to `WowConversation`. So say we text in "us is ready for a beer" an instance of `UsConversation` is returned and move_along is then called on the instance.
 
-Inside our subclassed conversations there is a method available to us called `say`. Say simple executes the converse block you set up inside your main Conversation class.In our case this will call `OutgoingTextMessage.send` passing in the number and the message. Obviously this example doesn't contain any error checking. If we text in something starting with other than "us" or "wow" we'll get an error because `details` will return nil and `move_along` will be called on `nil`
+Inside our subclassed conversations there is a method available to us called `say`. `say` executes the converse block you set up inside your main Conversation class.In our case this will call `OutgoingTextMessage.send` passing in the number and the message. Obviously this example doesn't contain any error checking. If we text in something starting with other than "us" or "wow" we'll get an error because `details` will return `nil` and `move_along` will be called on `nil`
 
 ### Outgoing Text Messages
 
@@ -140,13 +140,13 @@ With the current stateless implementation if they text "yes" then `details` will
 
 The first change you'll notice is that our Conversation base class now extends from ActiveRecord::Base. This does a couple of things. But first we will need a migration file (which can be generated with `rails g conversational:migration`). Once we have that we can simply migrate our database `rake db:migrate`. Extending from ActiveRecord::Base adds a couple of methods for us which i'll describe in some more detail later. For our example we only care about one of them.
 
-Jumping over to our controller you can see that now we are calling `Conversation.find_or_create_with` This method was added when we extended Conversation from ActiveRecord::Base. The method tries to return the last *recent*, *open* conversation with this number. By *open* we mean that it's state is *not* finished and by *recent* we mean that it was updated within the last 24 hours. More on how you can override this later. If it finds one it will return an instance of this conversation subclass. If it doesn't it will create a new conversation with the topic specified and return it as an instance of its subclass (just like `details`).
+Jumping over to our controller you can see that now we are calling `Conversation.find_or_create_with`. This method was added when we extended Conversation from ActiveRecord::Base. The method tries to return the last *recent*, *open* conversation with this number. By *open* we mean that it's state is *not* finished and by *recent* we mean that it was updated within the last 24 hours. More on how you can override this later. If it finds one it will return an instance of this conversation subclass. If it doesn't it will create a new conversation with the topic specified and return it as an instance of its subclass (just like `details`).
 
 Now take a look at our `FacebookAlert` class. The first thing is that we renamed it to `FacebookAlertConversation`. This is important so that it is now recognised as a type of conversation.
 
 There is also a new method `move_along` which looks at the message to see if the user replied with "yes" or "no" and responds appropriately. Notice it also calls `finish`. 
 
-If we jump back and take a look at our main Conversation class we see that `finish` marks the conversation state as finished so it will be found by `find_or_create_with` It is important that you remember to call `finish` on all conversations where you don't expect a response.
+If we jump back and take a look at our main Conversation class we see that `finish` marks the conversation state as finished so it will be found by `find_or_create_with`. It is important that you remember to call `finish` on all conversations where you don't expect a response.
 
 So how does this all tie together?
 
@@ -161,15 +161,15 @@ This sends the following message to you: "You have a new friend request from...D
 Notice that it calls `create!` and *not* `new` as we want to save this conversation. Also notice that topic is set to "facebook_alert" which is the name of the class minus "Conversation". This is important so `find_or_create_with` can find the conversation. Also notice that `friend_request` does *not* call finish. This conversation isn't over yet!
 
 Now sometime later you reply with "yes". The controller calls
-`Conversation.find_or_create_with` which finds your open conversation and returns the an instance as a `FacebookAlertConversation`
+`Conversation.find_or_create_with` which finds your open conversation and returns an instance as a `FacebookAlertConversation`.
 
 The controller then calls `move_along` on this conversation which looks at your message, sees that you replied with "yes" and replies with "You successfully accepted the friend request". It also calls `finish` which marks the conversation as finished, so that next time you text something in it won't find any open conversations.
 
-There are still a few more things we need to do in order to make this application work properly. Right now if we text in something other than "us", "wow" or "yes" we will get an exception. Let's fix it in the following section
+There are still a few more things we need to do in order to make this application work properly. Right now if we text in something other than "us", "wow" or "yes" we will still get an exception. Let's fix it in the following section.
 
 ## Configuration
 
-In our example application we are responding to requests based on the first word of their text message. But what if they text in something unknown to us or they text in something blank?
+In our example application we are responding to requests based on the first word of the incoming text message. But what if we text in something unknown or something blank?
 
 You can configure Conversation to deal with this situation as follows:
 
@@ -190,17 +190,19 @@ You can configure Conversation to deal with this situation as follows:
       end
     end
 
-Now when the user texts in with "hey jonnie", `details` will try and find a conversation defined as `HeyConversation`, won't be able to find it and will return an instance of `UnknownTopicConversation`
+Now when we text in "hey jonnie", `details` will try and find a conversation defined as `HeyConversation`, won't be able to find it and will return an instance of `UnknownTopicConversation` instead.
 
 `move_along` then causes a message to be sent saying "Sorry. Unknown Command."
 
 The same thing happens for a blank conversation.
 
-There is one more subtle issue with our application. What if a user texts in "facebook_alert"? The reply will be: "Invalid response. Reply with yes or no" when it should be "Sorry. Unknown Command". This is because if `find_or_create_with` cannot find an existing conversation it will try and create one with the topic "facebook_alert" if `FacebookAlertConversation` is defined in our application (which it is). To solve this prolem we can use `exclude`
+There is one more subtle issue with our application. What if we text in "facebook_alert"? The reply will be: "Invalid response. Reply with yes or no" when it should actually be "Sorry. Unknown Command". This is because if `find_or_create_with` cannot find an existing conversation it will try and create one with the topic "facebook_alert" if `FacebookAlertConversation` is defined in our application (which it is). To solve this prolem we can use `exclude`.
 
     class Conversation
       exclude FacebookAlertConversation
     end
+
+Now we'll get "Sorry. Unknown Command."
 
 ## Overriding Defaults
 
@@ -233,7 +235,6 @@ Here's an [example](http://github.com/dwilkie/drinking) *stateful* conversation 
 
 ## Notes
 
-Conversational is compatible with Rails 3
-To use with Rails 2.3.x you must install Conversation version 0.1.0 which is an old and obsolete version.
+Conversational is only compatible with Rails 3 however you do not need Rails if you are not using stateful conversations.
 
 Copyright (c) 2010 David Wilkie, released under the MIT license
