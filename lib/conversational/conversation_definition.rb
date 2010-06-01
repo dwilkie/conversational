@@ -18,7 +18,7 @@ module Conversational
       @@excluded_classes = classes
     end
 
-    def self.find_subclass_by_topic(topic)
+    def self.find_subclass_by_topic(topic, options = {})
       subclass = nil
       if topic.nil? || topic.blank?
         subclass = blank_topic_subclass if blank_topic_subclass
@@ -31,9 +31,8 @@ module Conversational
         end
         # the subclass has been defined
         # check that it is a subclass klass
-        if project_class &&
-          project_class <= @@klass &&
-          !self.exclude?(project_class)
+        if project_class && project_class <= @@klass &&
+          (options[:include_all] || !self.exclude?(project_class))
             subclass = project_class
         else
           subclass = unknown_topic_subclass if unknown_topic_subclass

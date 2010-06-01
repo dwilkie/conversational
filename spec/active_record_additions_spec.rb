@@ -65,7 +65,7 @@ describe Conversational::ActiveRecordAdditions do
   
   describe ".find_or_create_with" do
     context "when no existing conversation exists with 'someone'" do
-      context "but a subclass for this topic exists" do
+      context "but a subclass for this topic exists and has not been excluded" do
         let(:subclass) { mock("Subclass") }
         before {
           Conversational::ConversationDefinition.stub!(

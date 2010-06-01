@@ -46,6 +46,13 @@ module Conversational
       #     "goodbye"
       #   ) => #<HelloConversation topic: "hello", with: "someone">
       # 
+      #   Conversation.exclude HelloConversation
+      #
+      #   existing_conversation = Conversation.find_or_create_with(
+      #     "someone",
+      #     "goodbye"
+      #   ) => #<HelloConversation topic: "hello", with: "someone">
+      #
       #   existing_conversation.destroy
       # 
       #   non_existing_conversation = Conversation.find_or_create_with(
@@ -54,6 +61,13 @@ module Conversational
       #   ) => #<GoodbyeConversation topic: "goodbye", with: "someone">
       #  
       #   non_existing_conversation.destroy
+      #
+      #   Conversation.exclude GoodbyeConversation
+      #
+      #   non_existing_conversation = Conversation.find_or_create_with(
+      #     "someone",
+      #     "goodbye"
+      #   ) => BOOM! (Raises Error)
       #
       #   unknown_conversation = Conversation.find_or_create_with(
       #     "someone",
@@ -82,7 +96,7 @@ module Conversational
       # </tt>
       def find_or_create_with(with, topic)
         if default_find = self.with(with).last
-          default_find.details
+          default_find.details(:include_all => true)
         else
           subclass = ConversationDefinition.find_subclass_by_topic(topic)
           if subclass.nil?

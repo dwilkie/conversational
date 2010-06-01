@@ -12,7 +12,7 @@ module Conversational
     # Example:
     # 
     # <tt>
-    #   Class Conversation < ActiveRecord::Base
+    #   Class Conversation
     #     include Conversational::Conversation
     #   end
     # 
@@ -41,9 +41,18 @@ module Conversational
     #   blank = Conversation.new("someone")
     #   blank.details => #<GoodbyeConversation topic: nil, with: "someone">
     #
+    #   Conversation.exclude HelloConversation
+    #
+    #   hello = Conversation.new("someone", "hello")
+    #   hello.details => nil
+    #
+    #   hello.details(:include_all => true) => #<HelloConversation topic: "hello", with: "someone">
+    #
     # </tt>
-    def details
-      details_subclass = ConversationDefinition.find_subclass_by_topic(topic)
+    def details(options = {})
+      details_subclass = ConversationDefinition.find_subclass_by_topic(
+        topic, options[:include_all]
+      )
       self.becomes(details_subclass) if details_subclass
     end
 

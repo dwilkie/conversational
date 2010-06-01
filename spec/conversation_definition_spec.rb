@@ -91,22 +91,31 @@ describe Conversational::ConversationDefinition do
           before {
             Conversational::ConversationDefinition.stub!(:exclude?).and_return(true)
           }
-          context "and an unknown topic subclass has been defined" do
-            let!(:unknown_conversation) { define_conversation(:unknown => true) }
-            it "should return the unknown conversation subclass" do
-              Conversational::ConversationDefinition.find_subclass_by_topic(
-                 defined_conversation[:topic]
-              ).should == unknown_conversation[:class]
+          context "and it has not been explicitly included" do
+            context "and an unknown topic subclass has been defined" do
+              let!(:unknown_conversation) { define_conversation(:unknown => true) }
+              it "should return the unknown conversation subclass" do
+                Conversational::ConversationDefinition.find_subclass_by_topic(
+                   defined_conversation[:topic]
+                ).should == unknown_conversation[:class]
+              end
+            end
+            context "and an unknown topic subclass has not been defined" do
+              before {
+                Conversational::ConversationDefinition.unknown_topic_subclass = nil
+              }
+              it "should return nil" do
+                Conversational::ConversationDefinition.find_subclass_by_topic(
+                  defined_conversation[:topic]
+                ).should be_nil
+              end
             end
           end
-          context "and an unknown topic subclass has not been defined" do
-            before {
-              Conversational::ConversationDefinition.unknown_topic_subclass = nil
-            }
-            it "should return nil" do
+          context "but it was explicitly included for this query" do
+            it "should return the conversation definition class" do
               Conversational::ConversationDefinition.find_subclass_by_topic(
-                defined_conversation[:topic]
-              ).should be_nil
+                defined_conversation[:topic], :include_all => true
+              ).should == defined_conversation[:class]
             end
           end
         end
