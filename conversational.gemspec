@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
      "README.markdown",
      "Rakefile",
      "VERSION",
-     "conversation.gemspec",
      "conversational.gemspec",
      "features/configure_blank_topic.feature",
      "features/configure_exclusion_conversations.feature",
@@ -30,6 +29,7 @@ Gem::Specification.new do |s|
      "features/retrieve_conversation_details.feature",
      "features/step_definitions/conversation_steps.rb",
      "features/step_definitions/pickle_steps.rb",
+     "features/support/conversation.rb",
      "features/support/email_spec.rb",
      "features/support/env.rb",
      "features/support/mail.rb",
@@ -56,7 +56,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.6}
-  s.summary = %q{Have stateful conversations with your users}
+  s.summary = %q{Have conversations with your users over SMS}
   s.test_files = [
     "spec/conversation_spec.rb",
      "spec/active_record_additions_spec.rb",

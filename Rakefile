@@ -18,7 +18,7 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
     gemspec.name = "conversational"
-    gemspec.summary = "Have stateful conversations with your users"
+    gemspec.summary = "Have conversations with your users over SMS"
     gemspec.email = "dwilkie@gmail.com"
     gemspec.homepage = "http://github.com/dwilkie/conversational"
     gemspec.authors = ["David Wilkie"]
