@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{conversational}
-  s.version = ""
+  s.version = "0.3.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Wilkie"]
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
      "MIT-LICENSE",
      "README.markdown",
      "Rakefile",
+     "VERSION",
      "conversational.gemspec",
      "features/configure_blank_topic.feature",
      "features/configure_exclusion_conversations.feature",
