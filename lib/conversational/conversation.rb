@@ -55,7 +55,7 @@ module Conversational
       details_subclass = ConversationDefinition.find_subclass_by_topic(
         topic, options
       )
-      self.becomes(details_subclass) if details_subclass
+      becomes(details_subclass) if details_subclass
     end
 
     protected
@@ -71,7 +71,18 @@ module Conversational
         self.with = options[:with]
         self.topic = options[:topic]
       end
-      
+
+      private
+        def becomes(klass)
+          klass_instance = klass.new
+          self.instance_variables.each do |instance_variable|
+            klass_instance.instance_variable_set(
+              instance_variable,
+              self.instance_variable_get(instance_variable)
+            )
+          end
+          klass_instance
+        end
     end
 
     module ClassMethods
