@@ -196,7 +196,7 @@ Now when we text in "hey jonnie", `details` will try and find a conversation def
 
 The same thing happens for a blank conversation.
 
-There is one more subtle issue with our application. What if we text in "facebook_alert"? The reply will be: "Invalid response. Reply with yes or no" when it should actually be "Sorry. Unknown Command". This is because if `find_or_create_with` cannot find an existing conversation it will try and create one with the topic "facebook_alert" if `FacebookAlertConversation` is defined in our application (which it is). To solve this prolem we can use `exclude`.
+There is one more subtle issue with our application. What if we text in "facebook_alert"? The reply will be: "Invalid response. Reply with yes or no" when it should actually be "Sorry. Unknown Command". This is because if `find_or_create_with` cannot find an existing conversation it will try and create one with the topic "facebook_alert" if `FacebookAlertConversation` is defined in our application (which it is). To solve this problem we can use `exclude`.
 
     class Conversation
       exclude FacebookAlertConversation
@@ -231,7 +231,7 @@ Generates a migration file if you want to use Conversational with Rails
 
 ## More Examples
 
-Here's an [example](http://github.com/dwilkie/drinking) *stateful* conversation app  about drinking
+Here's an [example](http://github.com/dwilkie/drinking) *stateful* conversation app about drinking
 
 ## Notes
 
