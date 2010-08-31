@@ -21,7 +21,9 @@ module Conversational
     def self.find_subclass_by_topic(topic, options = {})
       subclass = nil
       if topic.nil? || topic.blank?
-        subclass = blank_topic_subclass if blank_topic_subclass
+        unless options[:exclude_blank_unknown]
+          subclass = blank_topic_subclass if blank_topic_subclass
+        end
       else
         project_class_name = self.topic_subclass_name(topic)
         begin
@@ -35,16 +37,25 @@ module Conversational
           (options[:include_all] || !self.exclude?(project_class))
             subclass = project_class
         else
-          subclass = unknown_topic_subclass if unknown_topic_subclass
+          unless options[:exclude_blank_unknown]
+            subclass = unknown_topic_subclass if unknown_topic_subclass
+          end
         end
       end
       subclass
     end
 
+    def self.topic_defined?(topic)
+      self.find_subclass_by_topic(
+        topic,
+        :exclude_blank_unknown => true
+      )
+    end
+
     def self.topic_subclass_name(topic)
       topic.classify + @@klass.to_s
     end
-    
+
     private
       def self.exclude?(subclass)
         if defined?(@@excluded_classes)
@@ -57,7 +68,7 @@ module Conversational
           end
         end
       end
-      
+
       def self.exclude_class?(subclass)
         if @@excluded_classes.is_a?(Class)
           @@excluded_classes == subclass
@@ -84,3 +95,4 @@ module Conversational
       end
   end
 end
+

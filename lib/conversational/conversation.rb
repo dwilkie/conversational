@@ -12,12 +12,12 @@ module Conversational
 
     # Returns the specific sublass of conversation based from the topic
     # Example:
-    # 
+    #
     # <tt>
     #   Class Conversation
     #     include Conversational::Conversation
     #   end
-    # 
+    #
     #   Class HelloConversation < Conversation
     #   end
     #
@@ -58,6 +58,10 @@ module Conversational
       becomes(details_subclass) if details_subclass
     end
 
+    def topic_defined?
+      details_subclass = ConversationDefinition.topic_defined?(topic)
+    end
+
     protected
       # Called from a subclass to deliver the message
       def say(message)
@@ -66,7 +70,7 @@ module Conversational
 
     module InstanceAttributes
       attr_accessor :with, :topic
-      
+
       def initialize(options = {})
         self.with = options[:with]
         self.topic = options[:topic]
@@ -89,15 +93,15 @@ module Conversational
       def unknown_topic_subclass=(klass)
         ConversationDefinition.unknown_topic_subclass = klass
       end
-      
+
       def unknown_topic_subclass
         ConversationDefinition.unknown_topic_subclass
       end
-      
+
       def blank_topic_subclass=(klass)
         ConversationDefinition.blank_topic_subclass = klass
       end
-      
+
       def blank_topic_subclass
         ConversationDefinition.blank_topic_subclass
       end
@@ -127,7 +131,7 @@ module Conversational
       # <tt>
       #   class AbstractConversation < Conversation
       #   end
-      # 
+      #
       #   class MonkeyConversation < AbstractConversation
       #   end
       #
@@ -197,3 +201,4 @@ module Conversational
     end
   end
 end
+
