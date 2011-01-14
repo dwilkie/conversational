@@ -8,7 +8,7 @@ module Conversational
       attr_accessor :finishing_keywords
 
       def converser(with)
-        scoped.where("with = ?", with)
+        scoped.where("'with' = ?", with)
       end
 
       def in_progress
