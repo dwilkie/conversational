@@ -1,72 +1,21 @@
 module Conversational
   module Conversation
+
+    mattr_accessor :unknown_topic_subclass,
+                   :blank_topic_subclass,
+                   :parent,
+                   :class_suffix
+
     def self.included(base)
+      self.parent = base
+      base.send(:include, InstanceMethods)
       base.extend ClassMethods
-      ConversationDefinition.klass = base
       if defined?(ActiveRecord::Base) && base <= ActiveRecord::Base
         base.send(:include, ActiveRecordAdditions)
       else
         base.send(:include, InstanceAttributes)
       end
     end
-
-    # Returns the specific sublass of conversation based from the topic
-    # Example:
-    #
-    # <tt>
-    #   Class Conversation
-    #     include Conversational::Conversation
-    #   end
-    #
-    #   Class HelloConversation < Conversation
-    #   end
-    #
-    #   Class GoodbyeConversation < Conversation
-    #   end
-    #
-    #   hello = Conversation.new("someone", "hello")
-    #   hello.details => #<HelloConversation topic: "hello", with: "someone">
-    #
-    #   unknown = Conversation.new("someone", "cheese")
-    #   unknown.details => nil
-    #
-    #   Conversation.unknown_topic_subclass = HelloConversation
-    #
-    #   unknown = Conversation.new("someone", "cheese")
-    #   unknown.details => #<HelloConversation topic: "cheese", with: "someone">
-    #
-    #   blank = Conversation.new("someone")
-    #   blank.details => nil
-    #
-    #   Conversation.blank_topic_subclass = GoodbyeConversation
-    #
-    #   blank = Conversation.new("someone")
-    #   blank.details => #<GoodbyeConversation topic: nil, with: "someone">
-    #
-    #   Conversation.exclude HelloConversation
-    #
-    #   hello = Conversation.new("someone", "hello")
-    #   hello.details => nil
-    #
-    #   hello.details(:include_all => true) => #<HelloConversation topic: "hello", with: "someone">
-    #
-    # </tt>
-    def details(options = {})
-      details_subclass = ConversationDefinition.find_subclass_by_topic(
-        topic, options
-      )
-      becomes(details_subclass) if details_subclass
-    end
-
-    def topic_defined?
-      details_subclass = ConversationDefinition.topic_defined?(topic)
-    end
-
-    protected
-      # Called from a subclass to deliver the message
-      def say(message)
-        ConversationDefinition.notification.call(with, message)
-      end
 
     module InstanceAttributes
       attr_accessor :with, :topic
@@ -75,48 +24,79 @@ module Conversational
         self.with = options[:with]
         self.topic = options[:topic]
       end
-
-      private
-        def becomes(klass)
-          klass_instance = klass.new
-          self.instance_variables.each do |instance_variable|
-            klass_instance.instance_variable_set(
-              instance_variable,
-              self.instance_variable_get(instance_variable)
-            )
-          end
-          klass_instance
-        end
     end
 
-    module ClassMethods
-      def unknown_topic_subclass=(klass)
-        ConversationDefinition.unknown_topic_subclass = klass
-      end
-
-      def unknown_topic_subclass
-        ConversationDefinition.unknown_topic_subclass
-      end
-
-      def blank_topic_subclass=(klass)
-        ConversationDefinition.blank_topic_subclass = klass
-      end
-
-      def blank_topic_subclass
-        ConversationDefinition.blank_topic_subclass
-      end
-
-      # Register a service for sending notifications
-      #
+    module InstanceMethods
+      # Returns the specific sublass of conversation based from the topic
       # Example:
       #
       # <tt>
-      #   Conversation.converse do |with, message|
-      #     OutgoingTextMessage.create!(with, message).send
+      #   Class Conversation
+      #     include Conversational::Conversation
       #   end
+      #
+      #   Class HelloConversation < Conversation
+      #   end
+      #
+      #   Class GoodbyeConversation < Conversation
+      #   end
+      #
+      #   hello = Conversation.new("someone", "hello")
+      #   hello.details => #<HelloConversation topic: "hello", with: "someone">
+      #
+      #   unknown = Conversation.new("someone", "cheese")
+      #   unknown.details => nil
+      #
+      #   Conversation.unknown_topic_subclass = HelloConversation
+      #
+      #   unknown = Conversation.new("someone", "cheese")
+      #   unknown.details => #<HelloConversation topic: "cheese", with: "someone">
+      #
+      #   blank = Conversation.new("someone")
+      #   blank.details => nil
+      #
+      #   Conversation.blank_topic_subclass = GoodbyeConversation
+      #
+      #   blank = Conversation.new("someone")
+      #   blank.details => #<GoodbyeConversation topic: nil, with: "someone">
+      #
+      #   Conversation.exclude HelloConversation
+      #
+      #   hello = Conversation.new("someone", "hello")
+      #   hello.details => nil
+      #
+      #   hello.details(:include_all => true) => #<HelloConversation topic: "hello", with: "someone">
+      #
       # </tt>
-      def converse(&blk)
-        ConversationDefinition.notification = blk
+      def details(options = {})
+        details_subclass = Conversational::Conversation.find_subclass_by_topic(
+          topic, options
+        )
+        if details_subclass
+          self.respond_to?(:becomes) ?
+            becomes(details_subclass) :
+            Conversational::Conversation.becomes(
+              details_subclass, self
+            )
+        end
+      end
+
+      def topic_defined?
+        details_subclass = Conversational::Conversation.topic_defined?(topic)
+      end
+    end
+
+    module ClassMethods
+      def unknown_topic_subclass(value)
+        Conversational::Conversation.unknown_topic_subclass = value
+      end
+
+      def blank_topic_subclass(value)
+        Conversational::Conversation.blank_topic_subclass = value
+      end
+
+      def class_suffix(value)
+        Conversational::Conversation.class_suffix = value
       end
 
       # Register classes which will not be treated as conversations
@@ -196,8 +176,109 @@ module Conversational
       # * Regexp: <tt>Conversation.exclude /abstract/i</tt>
 
       def exclude(classes)
-        ConversationDefinition.exclude(classes)
+        Conversational::Conversation.exclude(classes)
       end
+    end
+
+    def self.topic_defined?(topic)
+      self.find_subclass_by_topic(
+        topic,
+        :exclude_blank_unknown => true
+      )
+    end
+
+    def self.find_subclass_by_topic(topic, options = {})
+      subclass = nil
+      if topic.nil? || topic.blank?
+        unless options[:exclude_blank_unknown]
+          subclass = blank_topic_subclass.constantize if blank_topic_subclass
+        end
+      else
+        project_class_name = self.topic_subclass_name(topic)
+        begin
+          project_class = project_class_name.constantize
+        rescue
+          project_class = nil
+        end
+        # the subclass has been defined
+        # check that it is a subclass klass
+        if project_class && project_class <= parent &&
+          (options[:include_all] || !self.exclude?(project_class))
+            subclass = project_class
+        else
+          unless options[:exclude_blank_unknown]
+            subclass = unknown_topic_subclass.constantize if unknown_topic_subclass
+          end
+        end
+      end
+      subclass
+    end
+
+    def self.exclude(classes)
+      if classes
+        if classes.is_a?(Array)
+          classes.each do |class_name|
+            check_exclude_options!(class_name)
+          end
+        else
+          check_exclude_options!(classes)
+        end
+      end
+      @@excluded_classes = classes
+    end
+
+    def self.topic_subclass_name(topic)
+      topic.classify + (class_suffix || parent).to_s
+    end
+
+    private
+
+    def self.becomes(klass, from)
+      klass_instance = klass.new
+      from.instance_variables.each do |instance_variable|
+        klass_instance.instance_variable_set(
+          instance_variable,
+          from.instance_variable_get(instance_variable)
+        )
+      end
+      klass_instance
+    end
+
+    def self.exclude?(subclass)
+      if defined?(@@excluded_classes)
+        if @@excluded_classes.is_a?(Array)
+          @@excluded_classes.each do |excluded_class|
+            break if exclude_class?(subclass)
+          end
+        else
+          exclude_class?(subclass)
+        end
+      end
+    end
+
+    def self.exclude_class?(subclass)
+      if @@excluded_classes.is_a?(Class)
+        @@excluded_classes == subclass
+      elsif @@excluded_classes.is_a?(Regexp)
+        subclass.to_s =~ @@excluded_classes
+      else
+        excluded_class = @@excluded_classes.to_s
+        begin
+          excluded_class.classify.constantize == subclass
+        rescue
+          false
+        end
+      end
+    end
+
+    def self.check_exclude_options!(classes)
+      raise(
+        ArgumentError,
+        "You must specify an Array, Symbol, Regex, String or Class or nil. You specified a #{classes.class}"
+      ) unless classes.is_a?(Symbol) ||
+          classes.is_a?(Regexp) ||
+          classes.is_a?(String) ||
+          classes.is_a?(Class)
     end
   end
 end

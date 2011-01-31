@@ -3,18 +3,18 @@ module Conversational
     def self.included(base)
       base.extend ClassMethods
     end
-    
+
     module ClassMethods
       attr_accessor :finishing_keywords
-      
+
       def converser(with)
         scoped.where("with = ?", with)
       end
-      
+
       def in_progress
         scoped.where("state != ? OR state IS NULL", "finished")
       end
-      
+
       def recent(time = nil)
         time ||= 24.hours.ago
         scoped.where("updated_at > ?", time)
@@ -24,16 +24,16 @@ module Conversational
         scoped.converser(with).in_progress.recent
       end
 
-      # Finds an existing conversation with using the defaults or 
+      # Finds an existing conversation with using the defaults or
       # creates a new conversation and returns the specific conversation based
       # on the conversation topic.
       # Example:
-      # 
+      #
       # <tt>
       #   Class Conversation < ActiveRecord::Base
       #     include Conversational::Conversation
       #   end
-      # 
+      #
       #   Class HelloConversation < Conversation
       #   end
       #
@@ -45,7 +45,7 @@ module Conversational
       #     "someone",
       #     "goodbye"
       #   ) => #<HelloConversation topic: "hello", with: "someone">
-      # 
+      #
       #   Conversation.exclude HelloConversation
       #
       #   existing_conversation = Conversation.find_or_create_with(
@@ -54,12 +54,12 @@ module Conversational
       #   ) => #<HelloConversation topic: "hello", with: "someone">
       #
       #   existing_conversation.destroy
-      # 
+      #
       #   non_existing_conversation = Conversation.find_or_create_with(
       #     "someone",
       #     "goodbye"
       #   ) => #<GoodbyeConversation topic: "goodbye", with: "someone">
-      #  
+      #
       #   non_existing_conversation.destroy
       #
       #   Conversation.exclude GoodbyeConversation
@@ -98,10 +98,10 @@ module Conversational
         if default_find = self.with(with).last
           default_find.details(:include_all => true)
         else
-          subclass = ConversationDefinition.find_subclass_by_topic(topic)
+          subclass = Conversational::Conversation.find_subclass_by_topic(topic)
           if subclass.nil?
             if topic && !topic.blank?
-              subclass_name = ConversationDefinition.topic_subclass_name(topic)
+              subclass_name = Conversational::Conversation.topic_subclass_name(topic)
               raise(
                  ArgumentError,
                 "You have either not defined #{subclass_name} it does not subclass #{self.to_s}, or it has been excluded. You can either define #{subclass_name} as a subclass of #{self.to_s} or define an unknown_topic_subclass for #{self.to_s}"
@@ -119,3 +119,4 @@ module Conversational
     end
   end
 end
+
