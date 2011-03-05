@@ -88,15 +88,15 @@ module Conversational
 
     module ClassMethods
       def unknown_topic_subclass(value)
-        Conversational::Conversation.unknown_topic_subclass = value
+        Conversational::Conversation.unknown_topic_subclass = Conversational::Conversation.stringify(value)
       end
 
       def blank_topic_subclass(value)
-        Conversational::Conversation.blank_topic_subclass = value
+        Conversational::Conversation.blank_topic_subclass = Conversational::Conversation.stringify(value)
       end
 
       def class_suffix(value)
-        Conversational::Conversation.class_suffix = value
+        Conversational::Conversation.class_suffix = Conversational::Conversation.stringify(value)
       end
 
       # Register classes which will not be treated as conversations
@@ -257,9 +257,7 @@ module Conversational
     end
 
     def self.exclude_class?(subclass)
-      if @@excluded_classes.is_a?(Class)
-        @@excluded_classes == subclass
-      elsif @@excluded_classes.is_a?(Regexp)
+      if @@excluded_classes.is_a?(Regexp)
         subclass.to_s =~ @@excluded_classes
       else
         excluded_class = @@excluded_classes.to_s
@@ -274,11 +272,15 @@ module Conversational
     def self.check_exclude_options!(classes)
       raise(
         ArgumentError,
-        "You must specify an Array, Symbol, Regex, String or Class or nil. You specified a #{classes.class}"
+        "You must specify an Array, Symbol, Regex, Class, String or nil. You specified a #{classes.class}"
       ) unless classes.is_a?(Symbol) ||
           classes.is_a?(Regexp) ||
           classes.is_a?(String) ||
           classes.is_a?(Class)
+    end
+
+    def self.stringify(value)
+      value.nil? ? value : value.to_s
     end
   end
 end
