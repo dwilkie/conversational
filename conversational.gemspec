@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.authors     = ["David Wilkie"]
   s.email       = ["dwilkie@gmail.com"]
   s.homepage    = ""
-  s.summary     = %q{Have conversations based on topic}
-  s.description = %q{Have stateful or stateless conversations based a topic}
+  s.summary     = %q{Have topic based conversations}
+  s.description = %q{Allows you to instansiate conversations based on keywords}
 
   s.rubyforge_project = "conversational"
 

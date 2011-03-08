@@ -1,5 +1,0 @@
-Description:
-  Creates a migration file for when you want to use Conversation with ActiveRecord
-
-Example:
-  rails g conversation:migration

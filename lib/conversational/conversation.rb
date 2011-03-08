@@ -9,19 +9,14 @@ module Conversational
     def self.included(base)
       self.parent = base
       base.send(:include, InstanceMethods)
+      base.send(:include, InstanceAttributes)
       base.extend ClassMethods
-      if defined?(ActiveRecord::Base) && base <= ActiveRecord::Base
-        base.send(:include, ActiveRecordAdditions)
-      else
-        base.send(:include, InstanceAttributes)
-      end
     end
 
     module InstanceAttributes
-      attr_accessor :with, :topic
+      attr_accessor :topic
 
       def initialize(options = {})
-        self.with = options[:with]
         self.topic = options[:topic]
       end
     end

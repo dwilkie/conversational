@@ -85,13 +85,6 @@ describe Conversational::Conversation do
     end
   end
 
-  describe "#with" do
-    it "should set the conversationalist" do
-      conversation.with = "Dave"
-      conversation.with.should == "Dave"
-    end
-  end
-
   describe "#topic_defined?" do
     shared_examples_for "#topic_defined? for an excluded class" do
       it "should return nil" do

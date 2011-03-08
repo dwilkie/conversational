@@ -1,3 +1,0 @@
-class SampleConversation < Conversation
-end
-
