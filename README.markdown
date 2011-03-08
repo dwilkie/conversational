@@ -1,8 +1,8 @@
 # Conversational
 
-NOTE: Conversational no longer supports ActiveRecord additions or "stateful" conversations. If you still need this feature use version 0.3.2
-
 Conversational makes it easier to accept incoming text messages (SMS), emails and IM and respond to them in your application.
+
+NOTE: Conversational no longer supports ActiveRecord additions or "stateful" conversations. If you still need this feature use version 0.3.2
 
 ## Installation
 
