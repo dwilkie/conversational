@@ -18,6 +18,7 @@ module Conversational
 
       def initialize(options = {})
         self.topic = options[:topic]
+        super
       end
     end
 
