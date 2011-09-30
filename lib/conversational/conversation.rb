@@ -259,7 +259,7 @@ module Conversational
       else
         excluded_class = @@excluded_classes.to_s
         begin
-          excluded_class.classify.constantize == subclass
+          excluded_class.camelize.constantize == subclass
         rescue
           false
         end
