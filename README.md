@@ -84,5 +84,3 @@ You can configure Conversation to deal with unknown or blank topics as follows:
 
 Now if the user texts something like "hey jonnie", they'll receive: "Sorry. Unknown Command." Similarly, if they text nothing, they'll receive "Hey. What do you want?"
 
-Copyright (c) 2011 David Wilkie, released under the MIT license
-
