@@ -34,7 +34,7 @@ describe Conversational::Conversation do
     Conversation.should respond_to(:class_suffix)
   end
 
-  let!(:conversation) { Conversation.new }
+  let(:conversation) { Conversation.new }
 
   before do
     Conversation.exclude(nil)
@@ -49,31 +49,37 @@ describe Conversational::Conversation do
         Conversation.exclude "something"
         }.should_not raise_error
     end
+
     it "should accept a symbol" do
       lambda {
         Conversation.exclude :defined_conversation
         }.should_not raise_error
     end
+
     it "should accept a regex" do
       lambda {
         Conversation.exclude /something/i
         }.should_not raise_error
     end
+
     it "should accept a Class" do
       lambda {
         Conversation.exclude(DrinkingConversation)
       }.should_not raise_error
     end
+
     it "should accept an Array where the elements are a Class, String, Symbol or Regexp" do
       lambda {
         Conversation.exclude ["Something", DrinkingConversation, /something/i, :something]
         }.should_not raise_error
     end
+
     it "should accept nil" do
       lambda {
         Conversation.exclude nil
         }.should_not raise_error
     end
+
     it "should not accept anything else" do
       lambda {
         Conversation.exclude({})
@@ -88,6 +94,16 @@ describe Conversational::Conversation do
     end
   end
 
+  describe "#initialize" do
+    context ":topic => 'blah'" do
+      let(:subject) { Conversation.new(:topic => 'blah') }
+
+      it "should set the topic to 'blah'" do
+        subject.topic.should == 'blah'
+      end
+    end
+  end
+
   describe "#topic_defined?" do
     shared_examples_for "#topic_defined? for an excluded class" do
       it "should return nil" do
@@ -96,8 +112,8 @@ describe Conversational::Conversation do
     end
 
     context "a class with this topic is defined" do
-      before { conversation.topic = "drinking" }
       it "should be true" do
+        conversation.topic = "drinking"
         conversation.topic_defined?.should be_true
       end
 
@@ -148,6 +164,7 @@ describe Conversational::Conversation do
       it "should return nil" do
         conversation.details.should be_nil
       end
+
       context "when '.unknown_topic_subclass' is set" do
         before {Conversation.unknown_topic_subclass(SmokingConversation)}
         it "should return an instance of the unknown_topic_subclass" do

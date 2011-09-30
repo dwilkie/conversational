@@ -1,13 +1,10 @@
 module Conversational
   module Conversation
 
-    class << self
-      attr_accessor :unknown_topic_subclass,
-                    :blank_topic_subclass,
-                    :parent,
-                    :class_suffix
-
-    end
+    mattr_accessor :unknown_topic_subclass,
+                  :blank_topic_subclass,
+                  :parent,
+                  :class_suffix
 
     extend ActiveSupport::Concern
 
@@ -18,7 +15,6 @@ module Conversational
 
       def initialize(options = {})
         self.topic = options[:topic]
-        super
       end
     end
 
