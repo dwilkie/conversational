@@ -13,13 +13,13 @@ describe Conversational::Conversation do
   class SmokingConversation < Conversation
   end
 
+  class BusinessConversation < Conversation
+  end
+
   class DrivingBlahBlah < Conversation
   end
 
   class FlyingConversation
-  end
-
-  class BusinessConversation < Conversation
   end
 
   it "should respond to '.unknown_topic_subclass'" do
@@ -156,6 +156,13 @@ describe Conversational::Conversation do
       end
     end
 
+    context "a conversation for this topic ending with 's' has been defined" do
+      before { conversation.topic = "business" }
+      it "should return the instance as a subclass" do
+        conversation.details.should be_a(BusinessConversation)
+      end
+    end
+
     context "a conversation for this topic has been defined" do
       before { conversation.topic = "drinking" }
       it "should return the instance as a subclass" do
@@ -199,13 +206,6 @@ describe Conversational::Conversation do
     context "the conversation has no topic" do
       before { conversation.topic = nil }
       it_should_behave_like "#details for a blank or nil topic"
-    end
-
-    context "a conversation for this topic ended with 's' has been defined" do
-      before { conversation.topic = "business" }
-      it "should return the instance as a subclass" do
-        conversation.details.should be_a(BusinessConversation)
-      end
     end
   end
 end

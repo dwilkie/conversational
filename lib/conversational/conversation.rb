@@ -1,19 +1,19 @@
 module Conversational
   module Conversation
 
-    mattr_accessor :unknown_topic_subclass,
-                   :blank_topic_subclass,
-                   :parent,
-                   :class_suffix
+    class << self
+      attr_accessor :unknown_topic_subclass,
+                    :blank_topic_subclass,
+                    :parent,
+                    :class_suffix
 
-    def self.included(base)
-      self.parent = base
-      base.send(:include, InstanceMethods)
-      base.send(:include, InstanceAttributes)
-      base.extend ClassMethods
     end
 
-    module InstanceAttributes
+    extend ActiveSupport::Concern
+
+    included do
+      Conversational::Conversation.parent = self
+
       attr_accessor :topic
 
       def initialize(options = {})
@@ -83,6 +83,7 @@ module Conversational
     end
 
     module ClassMethods
+
       def unknown_topic_subclass(value)
         Conversational::Conversation.unknown_topic_subclass = Conversational::Conversation.stringify(value)
       end
@@ -185,7 +186,7 @@ module Conversational
 
     def self.find_subclass_by_topic(topic, options = {})
       subclass = nil
-      if topic.nil? || topic.blank?
+      if topic.nil? || topic.empty?
         unless options[:exclude_blank_unknown]
           subclass = blank_topic_subclass.constantize if blank_topic_subclass
         end
