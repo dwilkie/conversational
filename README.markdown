@@ -1,5 +1,7 @@
 # Conversational
 
+[![Build Status](https://secure.travis-ci.org/dwilkie/conversational.png)](http://travis-ci.org/dwilkie/conversational)
+
 Conversational makes it easier to accept incoming text messages (SMS), emails and IM and respond to them in your application.
 
 NOTE: Conversational no longer supports ActiveRecord additions or "stateful" conversations. If you still need this feature use version 0.3.2
