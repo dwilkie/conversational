@@ -225,7 +225,7 @@ module Conversational
     end
 
     def self.topic_subclass_name(topic)
-      topic.gsub(/s\z/, 'ss').classify + (class_suffix || parent).to_s
+      topic.camelize + (class_suffix || parent).to_s
     end
 
     private
