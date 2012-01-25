@@ -18,64 +18,62 @@ module Conversational
       end
     end
 
-    module InstanceMethods
-      # Returns the specific sublass of conversation based from the topic
-      # Example:
-      #
-      # <tt>
-      #   Class Conversation
-      #     include Conversational::Conversation
-      #   end
-      #
-      #   Class HelloConversation < Conversation
-      #   end
-      #
-      #   Class GoodbyeConversation < Conversation
-      #   end
-      #
-      #   hello = Conversation.new("someone", "hello")
-      #   hello.details => #<HelloConversation topic: "hello", with: "someone">
-      #
-      #   unknown = Conversation.new("someone", "cheese")
-      #   unknown.details => nil
-      #
-      #   Conversation.unknown_topic_subclass = HelloConversation
-      #
-      #   unknown = Conversation.new("someone", "cheese")
-      #   unknown.details => #<HelloConversation topic: "cheese", with: "someone">
-      #
-      #   blank = Conversation.new("someone")
-      #   blank.details => nil
-      #
-      #   Conversation.blank_topic_subclass = GoodbyeConversation
-      #
-      #   blank = Conversation.new("someone")
-      #   blank.details => #<GoodbyeConversation topic: nil, with: "someone">
-      #
-      #   Conversation.exclude HelloConversation
-      #
-      #   hello = Conversation.new("someone", "hello")
-      #   hello.details => nil
-      #
-      #   hello.details(:include_all => true) => #<HelloConversation topic: "hello", with: "someone">
-      #
-      # </tt>
-      def details(options = {})
-        details_subclass = Conversational::Conversation.find_subclass_by_topic(
-          topic, options
-        )
-        if details_subclass
-          self.respond_to?(:becomes) ?
-            becomes(details_subclass) :
-            Conversational::Conversation.becomes(
-              details_subclass, self
-            )
-        end
+    # Returns the specific sublass of conversation based from the topic
+    # Example:
+    #
+    # <tt>
+    #   Class Conversation
+    #     include Conversational::Conversation
+    #   end
+    #
+    #   Class HelloConversation < Conversation
+    #   end
+    #
+    #   Class GoodbyeConversation < Conversation
+    #   end
+    #
+    #   hello = Conversation.new("someone", "hello")
+    #   hello.details => #<HelloConversation topic: "hello", with: "someone">
+    #
+    #   unknown = Conversation.new("someone", "cheese")
+    #   unknown.details => nil
+    #
+    #   Conversation.unknown_topic_subclass = HelloConversation
+    #
+    #   unknown = Conversation.new("someone", "cheese")
+    #   unknown.details => #<HelloConversation topic: "cheese", with: "someone">
+    #
+    #   blank = Conversation.new("someone")
+    #   blank.details => nil
+    #
+    #   Conversation.blank_topic_subclass = GoodbyeConversation
+    #
+    #   blank = Conversation.new("someone")
+    #   blank.details => #<GoodbyeConversation topic: nil, with: "someone">
+    #
+    #   Conversation.exclude HelloConversation
+    #
+    #   hello = Conversation.new("someone", "hello")
+    #   hello.details => nil
+    #
+    #   hello.details(:include_all => true) => #<HelloConversation topic: "hello", with: "someone">
+    #
+    # </tt>
+    def details(options = {})
+      details_subclass = Conversational::Conversation.find_subclass_by_topic(
+        topic, options
+      )
+      if details_subclass
+        self.respond_to?(:becomes) ?
+          becomes(details_subclass) :
+          Conversational::Conversation.becomes(
+            details_subclass, self
+          )
       end
+    end
 
-      def topic_defined?
-        details_subclass = Conversational::Conversation.topic_defined?(topic)
-      end
+    def topic_defined?
+      details_subclass = Conversational::Conversation.topic_defined?(topic)
     end
 
     module ClassMethods
@@ -277,4 +275,3 @@ module Conversational
     end
   end
 end
-
